@@ -6,6 +6,8 @@
 
 v2.5.15配信ジョブは本変更をまとめるためキャンセル。中国サイト本体は撮影時点では旧名表示のため、撮影画像を改ざんせずそのまま採用。ポートフォリオの作品名は「一帯一旅 ～中国の街をめぐる旅の地図～」。
 
+公開済み: commit 5e0abefe0e4fcf55470a37ef913a5a8e22837738、Actions 36251660757 build/deploy成功。公開URLでcheck-deployment全5項目PASS（build.json 2.5.16/commit一致）、check-sharpnessも全7画像3840×2160・16:9・DPR2描画・390px幅PASS。通常WebGL表示の中国地図も目視確認。16:9化後のcheck-wring PASS（3倍ねじり、連続白化、落下継続）。qa/deployment/public-results.jsonとqa/v2.5.16に保存。
+
 ---
 
 # v2.5.15 — 2026-09-27
