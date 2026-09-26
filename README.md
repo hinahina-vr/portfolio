@@ -1,4 +1,4 @@
-# hinahina — Web, art & words — v2.6.1
+# hinahina:// — v2.6.2
 
 ユーザー自身の GLSL Effects Showcase の描画コードを直接使った、全画面WebGLのポートフォリオです。背景は画像・iframeではなく、元サイトと同じ流体シミュレーションとシェーダーで動きます。
 
@@ -57,7 +57,7 @@ VisualはGLSL Effects Showcase内のスタディです。Experimentsには「神
 
 ## 操作
 
-- 上部のWeb / Visual / Text / Video / Experiments、またはIndexからカテゴリを切り替え。
+- 上部のWeb / Visual / Words / Video / Experiments、またはIndexからカテゴリを切り替え。
 - 選択中のカテゴリ内で8秒ごとに作品が横へスライドして切り替わります。手動選択後は8秒数え直します。
 - 下部のサムネイルから作品を選択。スマホでは横にスワイプできます。
 - 一覧横のPause slideshow / Play slideshowで自動切替を停止・再開。停止状態は再読込後も保持します。

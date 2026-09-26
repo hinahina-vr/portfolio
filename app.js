@@ -82,7 +82,7 @@ function render(nextCategory='web',id,updateHistory=false){
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   setScene(project.scene);
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);
-  document.title=`${project.title} — hinahina`;
+  document.title='hinahina://';
   syncSlideshow();
 }
 strip.addEventListener('click',event=>{const button=event.target.closest('[data-project]');if(!button)return;const id=button.dataset.project;const scroll=strip.scrollLeft;render(category,id,true);strip.scrollLeft=scroll;strip.querySelector(`[data-project="${id}"]`).focus({preventScroll:true});});

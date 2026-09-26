@@ -19,7 +19,8 @@ try{
   expect(response.status()).toBe(200);
   await expect(page.locator('#art-stage')).toHaveAttribute('data-ready','true');
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
-  await expect(page.locator('.site-header h1')).toHaveText('hinahina');
+  await expect(page.locator('.site-header h1')).toHaveText('hinahina://');
+  await expect(page).toHaveTitle('hinahina://');
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','glsl-showcase',{timeout:12000});
   await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
   await page.emulateMedia({reducedMotion:'reduce'});

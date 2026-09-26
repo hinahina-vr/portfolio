@@ -32,11 +32,12 @@ try{
   await page.emulateMedia({reducedMotion:'reduce'});
   await expect(page.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');
   await page.locator('.motion-toggle').click();
-  await expect(page.locator('.site-header h1')).toHaveText('hinahina');
+  await expect(page.locator('.site-header h1')).toHaveText('hinahina://');
+  await expect(page).toHaveTitle('hinahina://');
   await page.evaluate(()=>document.fonts.ready);
   expect(await page.evaluate(()=>document.fonts.check('400 16px "Portfolio Grotesk"')&&document.fonts.check('700 16px "Portfolio Grotesk"'))).toBe(true);
   await expect(page.locator('.gallery h1,.portfolio-intro')).toHaveCount(0);
-  await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Text','Video','Experiments']);
+  await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Words','Video','Experiments']);
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('惑星の放課後');
   await expect(page.locator('.project-card').first()).toHaveAttribute('data-project','gaia-senseware');
   await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.png');
