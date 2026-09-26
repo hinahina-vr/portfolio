@@ -4,7 +4,9 @@ Text（ワディーゲストハウス・note）、Video（モルトバトルち�
 
 最終dist index-DK2tdEFQ.js / index-BxX7qq5E.css: npm test 17項目PASS（全10作品を1920/1440/768/390/320pxで検証）。check-text-video PASS: 新規3作品の4K読み込み・実サイトへ新規タブ遷移・リロード維持・Text→Videoのキー操作、5タブの1440/1024/768/390/320px表示。各画面をqa/v2.6.0に保存し目視。note/GitHubは実遷移確認。Xはhrefと新規タブ生成確認のみ、検証Chromeでは接続エラーのため外部ページ表示は未確認。モバイル実機未確認。ビルド更新中に一度favicon 404が記録されたため、ビルド完了後に全試験を再実行してエラーなしを確認。
 
-公開検証は配信後に追記。
+公開済み: 0b2d1e065a958e0f925f76334b2fc56dff1742ed / Actions 36252711808 build/deploy成功。最初のCIではソフトウェアGPU起動待ち中にスライドが進む検査競合が発生したため、表示検査はナビゲーション前からreduced motionに固定。動作検査は別途有効化し、初登場もcheck-entrance 5項目PASS。再実行CIの全17項目PASS。
+
+実公開URLのcheck-deployment 5項目PASS（初回Gaia・実時間での自動切替・全10画像・説明・リンク・モバイル幅・build.json 2.6.0とコミット一致・エラーなし）。check-text-videoも新規3件の実リンク・リロード、5画面幅のメニューを確認。Xのページ本体は公開サイト経由でも検証Chromeの接続制限により未確認、リンク先と新規タブ動作は確認。公開記録: qa/deployment/public-results.json、qa/v2.6.0/public-results.json。
 
 ---
 
