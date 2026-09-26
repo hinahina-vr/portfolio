@@ -9,7 +9,7 @@ const {PNG}=require('../node_modules/playwright-core/lib/utilsBundle.js');
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
-await mkdir('qa/v2.3.3',{recursive:true});
+await mkdir('qa/v2.4.0',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
@@ -17,7 +17,7 @@ const record=(name,details='')=>{results.push({name,status:'PASS',details});cons
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
 function pixelDifference(a,b){const left=PNG.sync.read(a),right=PNG.sync.read(b);expect(left.width).toBe(right.width);expect(left.height).toBe(right.height);let max=0,changed=0;for(let i=0;i<left.data.length;i++){const delta=Math.abs(left.data[i]-right.data[i]);max=Math.max(max,delta);if(delta>2)changed++;}return{max,changed};}
 const artImage=()=>page.screenshot({clip:{x:650,y:170,width:650,height:380}});
-const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.3.3/${name}.png`,fullPage:true});};
+const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.4.0/${name}.png`,fullPage:true});};
 page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('response',response=>{if(response.url().startsWith(url)&&response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
@@ -49,7 +49,7 @@ try{
   expect(box).toMatchObject({x:0,y:0,width:1440,height:900});
   expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth>500))).toBe(true);
   await screenshot('desktop-idle');
-  record('v2 regression: hinahina identity and large asymmetric preview, Gaia first, large 80% opaque real screenshot, full-screen shader and all four cards fit desktop');
+  record('Exhibition layout: hinahina identity, Gaia first, 80% opaque preview, full-screen shader and all four work buttons fit desktop');
 
   await page.locator('.immerse-toggle').click();await page.waitForTimeout(500);
   const before=hash(await artImage());
@@ -164,13 +164,13 @@ try{
         expect(project.description).toMatch(/[ぁ-んァ-ヶ一-龯]/);
         const captionBounds=await label.boundingBox(), proseBounds=await label.locator('.project-description').boundingBox();
         expect(captionBounds.width).toBeLessThanOrEqual(440);
-        if(viewport.width>850){expect(preview.x-(captionBounds.x+captionBounds.width)).toBeGreaterThanOrEqual(24);}else{expect(captionBounds.width).toBeGreaterThan(viewport.width<700?viewport.width-70:430);}
+        if(viewport.width>850){expect(captionBounds.x-(preview.x+preview.width)).toBeGreaterThanOrEqual(31);}else{expect(captionBounds.width).toBeGreaterThan(viewport.width<700?viewport.width-70:430);}
         expect(proseBounds.x).toBeGreaterThanOrEqual(captionBounds.x);
         expect(proseBounds.x+proseBounds.width).toBeLessThanOrEqual(captionBounds.x+captionBounds.width+1);
         expect(proseBounds.y+proseBounds.height).toBeLessThanOrEqual(captionBounds.y+captionBounds.height+1);
         expect(await label.locator('.project-description').evaluate(el=>getComputedStyle(el).fontFamily)).toContain('Yu Mincho');
         const caption=await page.locator('.site-header').boundingBox();const info=await page.locator('.project-info').boundingBox();expect(info.y).toBeGreaterThan(caption.y+caption.height);
-        if(viewport.width>850){expect(preview.x).toBeGreaterThan(info.x+200);expect(info.y).toBeGreaterThan(preview.y+40);}
+        if(viewport.width>850){expect(info.x).toBeGreaterThanOrEqual(preview.x+preview.width+31);expect(info.x-preview.x-preview.width).toBeLessThanOrEqual(81);}else{expect(info.y).toBeGreaterThanOrEqual(preview.y+preview.height+24);}
         const anchor=await page.locator('.open-project').boundingBox();const controls=await page.locator('.canvas-controls').boundingBox();
         expect(anchor.x+anchor.width<=controls.x || anchor.y+anchor.height<=controls.y || anchor.y>=controls.y+controls.height).toBe(true);
         if(project.id==='myth-making-machine')await screenshot(`experiment-${viewport.width}`);
@@ -195,5 +195,5 @@ try{
   const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(4);await noJs.close();
   record('JavaScript disabled: all four live-site links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
-}catch(error){results.push({name:'v2.3.3 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.3.3/test-results.json',JSON.stringify({version:'2.3.3',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+}catch(error){results.push({name:'v2.4.0 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
+finally{await writeFile('qa/v2.4.0/test-results.json',JSON.stringify({version:'2.4.0',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}

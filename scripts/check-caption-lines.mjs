@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {categories} from '../content.js';
 
 const before=process.argv.includes('--before');
-const output='qa/v2.3.3';
+const output='qa/v2.4.0';
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const results=[];
@@ -33,4 +33,4 @@ try{
   }
   console.log(JSON.stringify(results.map(({viewport,project,status,width,lines})=>({viewport:viewport.width,project,status,width,lines}))));
 }catch(error){results.push({status:'FAIL',details:error.stack});process.exitCode=1;console.error(error);}
-finally{await writeFile(`${output}/${before?'before':'after'}-caption-lines.json`,JSON.stringify({version:before?'2.3.0':'2.3.3',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results},null,2));await browser.close();}
+finally{await writeFile(`${output}/${before?'before':'after'}-caption-lines.json`,JSON.stringify({version:before?'2.3.0':'2.4.0',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results},null,2));await browser.close();}

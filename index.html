@@ -27,11 +27,6 @@
     </header>
     <main id="works" class="gallery">
       <section class="work-panel" id="work-panel" role="tabpanel" aria-labelledby="tab-web" tabindex="0"></section>
-      <div class="canvas-controls">
-        <button class="scene-control" id="settings-toggle" aria-expanded="false" aria-controls="scene-settings" aria-label="背景の設定"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14M7 2v6M13 7v6M8 12v6" stroke="currentColor"/></svg></button>
-        <button class="motion-toggle scene-control" aria-label="アニメーションを一時停止" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg></button>
-        <button class="immerse-toggle scene-control" aria-label="作品の操作画面を隠す" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" stroke="currentColor"/></svg></button>
-      </div>
       <section id="scene-settings" class="scene-settings" aria-label="背景の設定" hidden>
         <div class="settings-head"><span>Background</span><button id="settings-close" aria-label="背景の設定を閉じる">×</button></div>
         <p class="background-state" id="art-state">Playing</p>
@@ -42,7 +37,13 @@
         <p>From <a href="https://glsl-effects-showcase.pages.dev/" target="_blank" rel="noopener noreferrer">GLSL Effects Showcase</a></p>
       </section>
     </main>
-    <section class="collection" aria-label="作品一覧"><div id="project-strip" class="project-strip"></div></section>
+    <section class="collection" aria-label="作品一覧"><div id="project-strip" class="project-strip"></div>
+      <div class="canvas-controls">
+        <button class="scene-control" id="settings-toggle" aria-expanded="false" aria-controls="scene-settings" aria-label="背景の設定"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14M7 2v6M13 7v6M8 12v6" stroke="currentColor"/></svg></button>
+        <button class="motion-toggle scene-control" aria-label="アニメーションを一時停止" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button class="immerse-toggle scene-control" aria-label="作品の操作画面を隠す" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" stroke="currentColor"/></svg></button>
+      </div>
+    </section>
   </div>
   <button class="restore-ui" hidden>Back to works</button>
   <dialog id="site-menu" class="site-menu" aria-labelledby="menu-title">

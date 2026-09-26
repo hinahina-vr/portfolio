@@ -1,6 +1,6 @@
 import {chromium,expect} from '@playwright/test';
 import {mkdir,writeFile} from 'node:fs/promises';
-const output='qa/v2.3.3';
+const output='qa/v2.4.0';
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const results=[],errors=[];
@@ -44,4 +44,4 @@ try{
   expect(errors).toEqual([]);
   pass('No runtime errors');
 }catch(error){results.push({name:'Slideshow regression',status:'FAIL',details:error.stack});console.error(error);process.exitCode=1;}
-finally{await writeFile(output+'/slideshow-results.json',JSON.stringify({version:'2.3.3',artifact:'dist',clock:'real elapsed time',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();}
+finally{await writeFile(output+'/slideshow-results.json',JSON.stringify({version:'2.4.0',artifact:'dist',clock:'real elapsed time',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();}
