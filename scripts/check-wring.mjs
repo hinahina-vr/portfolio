@@ -14,7 +14,7 @@ await page.addInitScript(()=>{
    const result=original.apply(this,args);
    if(this.canvas.classList.contains('panel-canvas')){
     const program=this.getParameter(this.CURRENT_PROGRAM);
-    if(this.getUniformLocation(program,'curl')!==null)window.panelDraws.push({frame,time:performance.now(),curl:this.getUniform(program,this.getUniformLocation(program,'curl')),blend:this.getUniform(program,this.getUniformLocation(program,'blend')),bleach:this.getUniform(program,this.getUniformLocation(program,'bleach'))});
+    if(this.getUniformLocation(program,'curl')!==null)window.panelDraws.push({frame,time:performance.now(),shaderTime:this.getUniform(program,this.getUniformLocation(program,'time'))*1000,curl:this.getUniform(program,this.getUniformLocation(program,'curl')),blend:this.getUniform(program,this.getUniformLocation(program,'blend')),bleach:this.getUniform(program,this.getUniformLocation(program,'bleach'))});
    }
    if(this.canvas.classList.contains('liquid-canvas')){
     if(this.getParameter(this.FRAMEBUFFER_BINDING)&&this.getParameter(this.VIEWPORT)[2]===768&&this.getUniformLocation(this.getParameter(this.CURRENT_PROGRAM),'emissionTime')!==null){
@@ -52,9 +52,9 @@ try{
  const frames=new Map();for(const draw of draws)frames.set(draw.frame,(frames.get(draw.frame)||0)+1);
  expect([...frames.values()].every(count=>count===1)).toBe(true);
  const peak=draws.reduce((a,b)=>a.curl>b.curl?a:b);
- expect(peak.curl).toBeGreaterThan(30.5);expect(peak.blend).toBeLessThan(.03);expect(draws.find(d=>d.time-draws[0].time>=500).bleach).toBeGreaterThan(.1);
- expect(draws.find(d=>d.time-draws[0].time>=1100).bleach).toBeGreaterThan(.45);
- expect(draws.find(d=>d.time-draws[0].time>=1800).bleach).toBeGreaterThan(.8);
+ expect(peak.curl).toBeGreaterThan(30.5);expect(peak.blend).toBeLessThan(.03);expect(draws.find(d=>d.shaderTime-draws[0].time>=500).bleach).toBeGreaterThan(.1);
+ expect(draws.find(d=>d.shaderTime-draws[0].time>=1100).bleach).toBeGreaterThan(.45);
+ expect(draws.find(d=>d.shaderTime-draws[0].time>=1800).bleach).toBeGreaterThan(.8);
  await writeFile('qa/v2.6.1/bleach-frames.json',JSON.stringify(draws,null,2));
  const tightening=draws.filter(d=>d.blend===0);expect(tightening.every((d,i)=>!i||d.bleach>=tightening[i-1].bleach)).toBe(true);
  expect(draws.some(d=>d.bleach>.99&&d.blend===0)).toBe(true);

@@ -6,7 +6,7 @@ Text内にXとGitHubを追加（全4件）。GitHubは実画面の3840×2160 PNG
 
 index-Mi2q7u6N.js: check-wring-shape PASS（実GPUとCPU排水面の最大座標誤差4.26e-7、49×25の流量保存、低い出口と描画面の一致、非対称な握り・くびれ・復元）。check-wring PASS（30.6rad、3.2秒、段階白化、単一面の切替、粒子の途中消失なし）。check-handoff往復PASS（除去時alpha255）。check-text-videoでText全4件の選択・4Kプレビュー・URL・リロード、GitHubへの実遷移、Xリンク新規タブ生成を確認。Xページ本体は未確認。1440/1024/768/390/320pxで表示確認、静止画目視。スマートフォン実機未確認。
 
-npm test全17項目PASS（全12件、1920/1440/768/390/320px、キーボード・履歴・フォールバック・JavaScript無効・エラーなし）。公開結果は完了後に追記。
+npm test全17項目PASS（全12件、1920/1440/768/390/320px、キーボード・履歴・フォールバック・JavaScript無効・エラーなし）。公開済み: ad5ff956e293f2fec20ddef8fb68b65b8c56deb0 / Actions 36258875771 build/deploy成功。実公開URLでcheck-deployment 5項目PASS（全12プレビュー、build.json 2.6.1/commit一致）。check-text-videoのText全4件・リンク・リロード・5画面幅PASS。public-wringもPASS。GPU読み戻しによる検査負荷で白化測定に時刻差が出たため、白化は実際にシェーダーへ渡った時刻で判定するよう検査を修正し、公開・ローカル双方で再合格。公開アプリ本体は変更なし。結果はqa/v2.6.1/public-results.json、public-wring-results.json、qa/deployment/public-results.json。
 
 ---
 
