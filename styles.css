@@ -94,9 +94,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 /* A compact, tactile strip for choosing works. */
 .collection{flex-shrink:0;display:flex;align-items:center;gap:12px;width:100%;max-width:1200px;margin:0 auto;padding:15px 0 26px}
 .project-strip{display:flex;flex:1;min-width:0;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#a3cdbd55 transparent;pointer-events:auto;padding:6px;scroll-snap-type:x proximity}
-.slideshow-toggle{display:flex;flex-shrink:0;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:0 14px;border:1px solid #d6e9e357;border-radius:99px;background:#071a237a;backdrop-filter:blur(10px);font-size:11px;color:#d7e6df}
-.slideshow-toggle svg{width:16px;height:16px}
-.slideshow-toggle:hover,.slideshow-toggle[aria-pressed=true]{background:#d0e6d926;color:#fff}
 .project-card{display:flex;align-items:center;flex:1 0 0;min-width:0;gap:14px;min-height:78px;padding:8px;text-align:left;border:1px solid #cee8d930;border-radius:6px;background:#07171e73;backdrop-filter:blur(12px);transition:background .2s,border-color .2s,transform .2s;scroll-snap-align:start}
 .project-card img{width:84px;flex-shrink:0;aspect-ratio:1.6;height:auto;object-fit:cover;border-radius:2px;filter:saturate(.65) brightness(.72);transition:filter .2s}
 .card-meta{min-width:0}
@@ -177,8 +174,6 @@ body.immersed .edge-shade{opacity:0}
   .canvas-controls{bottom:14px}
   .collection{padding:9px 0 22px}
   .project-card{flex:0 0 225px}
-  .slideshow-toggle{width:44px;padding:0}
-  .slideshow-toggle span{display:none}
 }
 @media(max-width:700px){
   .interface{padding:0 20px}

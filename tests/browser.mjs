@@ -9,7 +9,7 @@ const {PNG}=require('../node_modules/playwright-core/lib/utilsBundle.js');
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
-await mkdir('qa/v2.3.2',{recursive:true});
+await mkdir('qa/v2.3.3',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
@@ -17,7 +17,7 @@ const record=(name,details='')=>{results.push({name,status:'PASS',details});cons
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
 function pixelDifference(a,b){const left=PNG.sync.read(a),right=PNG.sync.read(b);expect(left.width).toBe(right.width);expect(left.height).toBe(right.height);let max=0,changed=0;for(let i=0;i<left.data.length;i++){const delta=Math.abs(left.data[i]-right.data[i]);max=Math.max(max,delta);if(delta>2)changed++;}return{max,changed};}
 const artImage=()=>page.screenshot({clip:{x:650,y:170,width:650,height:380}});
-const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.3.2/${name}.png`,fullPage:true});};
+const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.3.3/${name}.png`,fullPage:true});};
 page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('response',response=>{if(response.url().startsWith(url)&&response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
@@ -25,8 +25,11 @@ async function ready(scene){await expect(page.locator('#art-stage')).toHaveAttri
 try{
   await page.goto(url+'#works/web',{waitUntil:'networkidle'});
   await ready('kelp-current');
-  await page.locator('#slideshow-toggle').click();
-  await expect(page.locator('#slideshow-toggle')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
+  // Hold slides with the supported motion preference; test background motion separately.
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await expect(page.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');
+  await page.locator('.motion-toggle').click();
   await expect(page.locator('.site-header h1')).toHaveText('hinahina');
   await expect(page.locator('.gallery h1,.portfolio-intro')).toHaveCount(0);
   await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Experiments']);
@@ -100,7 +103,7 @@ try{
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('神話製作機械');
   await expect(page.locator('.project-card')).toHaveText('神話製作機械');
   await expect(page.locator('.open-project')).toHaveText('Open concept');
-  await expect(page.locator('#slideshow-toggle')).toBeHidden();
+  await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
   await expect(page.locator('#work-panel, #project-strip').getByText('Gesture Cut Field',{exact:true})).toHaveCount(0);
   await expect.poll(()=>page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===1440)).toBe(true);
   await screenshot('experiment-desktop');
@@ -192,5 +195,5 @@ try{
   const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(4);await noJs.close();
   record('JavaScript disabled: all four live-site links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
-}catch(error){results.push({name:'v2.3.2 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.3.2/test-results.json',JSON.stringify({version:'2.3.2',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+}catch(error){results.push({name:'v2.3.3 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
+finally{await writeFile('qa/v2.3.3/test-results.json',JSON.stringify({version:'2.3.3',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}

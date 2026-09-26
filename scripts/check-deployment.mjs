@@ -21,7 +21,8 @@ try{
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
   await expect(page.locator('.site-header h1')).toHaveText('hinahina');
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','glsl-showcase',{timeout:12000});
-  await page.locator('#slideshow-toggle').click();
+  await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
+  await page.emulateMedia({reducedMotion:'reduce'});
   pass('Public site loads real WebGL; Gaia is first and actual elapsed time advances to GLSL');
   for(const [category,data] of Object.entries(categories)){
     await page.locator(`#tab-${category}`).click();
@@ -36,7 +37,7 @@ try{
       await expect.poll(()=>page.locator('.preview-image').evaluate((img,width)=>img.complete&&img.naturalWidth===width,sourceWidth)).toBe(true);
     }
   }
-  await expect(page.locator('#slideshow-toggle')).toBeHidden();
+  await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
   await page.reload({waitUntil:'networkidle'});
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','myth-making-machine');
   const opened=page.waitForEvent('popup');await page.locator('.open-project').click();const popup=await opened;

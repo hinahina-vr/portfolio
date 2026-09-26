@@ -3,17 +3,17 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {categories} from '../content.js';
 
 const before=process.argv.includes('--before');
-const output='qa/v2.3.2';
+const output='qa/v2.3.3';
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const results=[];
 try{
-  const page=await browser.newPage();
+  const page=await browser.newPage({reducedMotion:'reduce'});
   for(const viewport of [{width:1920,height:1080},{width:768,height:1024}]){
     await page.setViewportSize(viewport);
     await page.goto('http://127.0.0.1:4173/#works/web',{waitUntil:'networkidle'});
     await expect(page.locator('#art-stage')).toHaveAttribute('data-ready','true');
-    if(await page.locator('#slideshow-toggle').getAttribute('aria-pressed')==='false')await page.locator('#slideshow-toggle').click();
+    await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
     await page.evaluate(()=>document.fonts.ready);
     for(const [category,data] of Object.entries(categories)){
       await page.locator(`#tab-${category}`).click();
@@ -33,4 +33,4 @@ try{
   }
   console.log(JSON.stringify(results.map(({viewport,project,status,width,lines})=>({viewport:viewport.width,project,status,width,lines}))));
 }catch(error){results.push({status:'FAIL',details:error.stack});process.exitCode=1;console.error(error);}
-finally{await writeFile(`${output}/${before?'before':'after'}-caption-lines.json`,JSON.stringify({version:before?'2.3.0':'2.3.2',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results},null,2));await browser.close();}
+finally{await writeFile(`${output}/${before?'before':'after'}-caption-lines.json`,JSON.stringify({version:before?'2.3.0':'2.3.3',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results},null,2));await browser.close();}

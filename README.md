@@ -1,4 +1,4 @@
-# hinahina — Web & interactive works — v2.3.2
+# hinahina — Web & interactive works — v2.3.3
 
 ユーザー自身の GLSL Effects Showcase の描画コードを直接使った、全画面WebGLのポートフォリオです。背景は画像・iframeではなく、元サイトと同じ流体シミュレーションとシェーダーで動きます。
 
@@ -77,7 +77,7 @@ npm run build
 npm test
 ```
 
-Windowsの実Chromeを使い、ビルドした `dist/` を検証します。掲載サイトを開く試験にはネット接続が必要です。結果は `qa/v2.3.2/test-results.json`、画像は `qa/v2.3.2/`。確認範囲は `VERIFICATION.md` に記録。
+Windowsの実Chromeを使い、ビルドした `dist/` を検証します。掲載サイトを開く試験にはネット接続が必要です。結果は `qa/v2.3.3/test-results.json`、画像は `qa/v2.3.3/`。確認範囲は `VERIFICATION.md` に記録。
 
 4173のプレビュー起動中に `node scripts/check-composition.mjs` で画面の配置、`node scripts/check-clean-ui.mjs` で英語UI・見出し位置と装飾の除去、`node scripts/check-buttons.mjs` でボタンの表示を再確認できます。
 
@@ -94,3 +94,5 @@ v2.3.0では解説の固定幅を外し、画像の手前24pxまで広げまし�
 v2.3.1では説明欄を最大440pxに絞りました。幅に余裕のある画面では7作品の解説が3行になり、狭い画面では本文を省略せず折り返します。`node scripts/check-caption-lines.mjs` で1920px・768px幅の実際の行数を確認できます。
 
 v2.3.2ではExperimentsの掲載作品を「神話製作機械」に差し替えました。実画面の画像、日本語の展示解説、該当箇所へ直接移動するOpen conceptボタンを掲載しています。
+
+v2.3.3では一覧横のPause slideshow / Play slideshowボタンを削除しました。8秒ごとの自動切替は継続し、以前保存された手動停止状態は読み込みません。動きを減らす設定、Index・背景設定・没入表示中の待機は引き続き有効です。

@@ -13,17 +13,11 @@ let paused=reduced.matches;
 try{paused ||= localStorage.getItem('portfolio-motion')==='paused';}catch{}
 const slideshowInterval=8000;
 let slideshowPaused=reduced.matches,slideshowTimer,slideshowExit;
-try{slideshowPaused ||= localStorage.getItem('portfolio-slideshow')==='paused';}catch{}
 function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;const exit=slideshowExit;slideshowExit=undefined;exit?.cancel();}
 function slideshowHeld(){return document.hidden||menu.open||!$('#scene-settings').hidden||immersed;}
 function syncSlideshow(){
   cancelSlideshow();
-  const control=$('#slideshow-toggle');
-  const label=slideshowPaused?'Play slideshow':'Pause slideshow';
-  control.hidden=categories[category].projects.length<2;
-  control.setAttribute('aria-pressed',String(slideshowPaused));control.setAttribute('aria-label',label);control.title=label;
-  control.innerHTML=`<svg viewBox="0 0 20 20" aria-hidden="true">${slideshowPaused?'<path d="m7 5 8 5-8 5Z" fill="currentColor"/>':'<path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/>'}</svg><span>${label}</span>`;
-  if(!slideshowPaused&&!control.hidden&&!slideshowHeld())slideshowTimer=setTimeout(advanceSlideshow,slideshowInterval);
+  if(!slideshowPaused&&categories[category].projects.length>1&&!slideshowHeld())slideshowTimer=setTimeout(advanceSlideshow,slideshowInterval);
 }
 function advanceSlideshow(){
   if(slideshowPaused||slideshowHeld())return syncSlideshow();
@@ -94,8 +88,7 @@ $('#settings-toggle').addEventListener('click',()=>settings($('#scene-settings')
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(immersed)immerse(false);if(!$('#scene-settings').hidden){settings(false);$('#settings-toggle').focus();}}});
 $('#scene-select').addEventListener('change',event=>setScene(event.target.value));for(const key of ['intensity','motion']){$(`#${key}`).addEventListener('input',event=>{const value=Number(event.target.value);$(`#${key}-value`).textContent=value.toFixed(2);art.setValue(key,value);});}
 const reflectPaused=()=>document.body.classList.toggle('art-paused',$('.motion-toggle').getAttribute('aria-pressed')==='true');
-$('#slideshow-toggle').addEventListener('click',()=>{slideshowPaused=!slideshowPaused;try{localStorage.setItem('portfolio-slideshow',slideshowPaused?'paused':'playing');}catch{}syncSlideshow();});
 document.addEventListener('visibilitychange',syncSlideshow);
-reduced.addEventListener('change',event=>{if(event.matches)slideshowPaused=true;syncSlideshow();});
+reduced.addEventListener('change',event=>{slideshowPaused=event.matches;syncSlideshow();});
 new MutationObserver(reflectPaused).observe($('.motion-toggle'),{attributes:true,attributeFilter:['aria-pressed']});
 syncHash();updateMotion();reflectPaused();
