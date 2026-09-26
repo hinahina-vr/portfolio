@@ -38,8 +38,8 @@ try{
   await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Experiments']);
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('惑星の放課後');
   await expect(page.locator('.project-card').first()).toHaveAttribute('data-project','gaia-senseware');
-  await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.jpg');
-  expect(await page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===1440)).toBe(true);
+  await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.png');
+  expect(await page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===3840)).toBe(true);
   const previewBox=await page.locator('.preview-image').boundingBox();
   expect(previewBox.width).toBeGreaterThan(500);
   expect(previewBox.height).toBeGreaterThan(300);
@@ -107,7 +107,7 @@ try{
   await expect(page.locator('.open-project')).toHaveText('Open concept');
   await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
   await expect(page.locator('#work-panel, #project-strip').getByText('Gesture Cut Field',{exact:true})).toHaveCount(0);
-  await expect.poll(()=>page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===1440)).toBe(true);
+  await expect.poll(()=>page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===3840)).toBe(true);
   await screenshot('experiment-desktop');
   for(const selector of ['.preview-link','.open-project']){
     await expect(page.locator(selector)).toHaveAttribute('href','https://gaia-senseware.pages.dev/concept/#depth');

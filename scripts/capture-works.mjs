@@ -10,7 +10,7 @@ await mkdir('public/assets', {recursive:true});
 const browser = await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try {
   for(const [id,url] of sites.filter(([id])=>!process.argv[2]||id===process.argv[2])) {
-    const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+    const page=await browser.newPage({viewport:{width:1920,height:1080},deviceScaleFactor:2});
     await page.goto(url,{waitUntil:'domcontentloaded',timeout:45000});
     await page.waitForTimeout(3500);
     if(id==='gaia-senseware'){
@@ -18,17 +18,17 @@ try {
       await page.waitForTimeout(1200);
     }
     if(id==='quiz-pal'){
-      // Close control verified in the captured 1440 x 900 introductory screen.
-      await page.mouse.click(1372,60);
+      // Dismiss the introduction using its accessible control at any viewport.
+      await page.getByRole('button',{name:'紹介を閉じる'}).click();
       await page.waitForTimeout(700);
       const skip=page.getByText('スキップ',{exact:true});
       if(await skip.count())await skip.click();
       await page.waitForTimeout(350);
     }
-    await page.screenshot({path:`public/assets/${id}.jpg`,type:'jpeg',quality:88});
+    await page.screenshot({path:`public/assets/${id}.png`,type:'png'});
     const content=await page.locator('body').innerText();
     await writeFile(`qa/v2/${id}-content.txt`,content);
-    console.log(JSON.stringify({id,url:page.url(),title:await page.title(),text:content.slice(0,5000)}));
+    console.log(JSON.stringify({id,url:page.url(),title:await page.title(),text:content.slice(0,150)}));
     await page.close();
   }
 }finally{await browser.close();}

@@ -97,7 +97,7 @@ function createLiquid(){
  function init(){
   if(renderer||failed||reduced.matches)return;
   try{
-   renderer=new THREE.WebGLRenderer({alpha:true,antialias:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
+   renderer=new THREE.WebGLRenderer({alpha:true,antialias:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));
    renderer.domElement.className='liquid-canvas';renderer.domElement.setAttribute('aria-hidden','true');renderer.domElement.dataset.solver='three-fluid-fx';document.body.append(renderer.domElement);
    fluid=new FluidSimulation(renderer,{profile:'performance',pressureIterations:8,bfecc:true,reflectWalls:false,curlStrength:0,enableVorticity:false,densityDissipation:.989,velocityDissipation:.988,splatRadius:.0006,splatForce:4});
    geometry=new THREE.PlaneGeometry(2,2);material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms,transparent:true,depthTest:false});
@@ -113,7 +113,7 @@ function createLiquid(){
    previousTexture?.dispose();previousTexture=photoTexture;
    photoTexture=new THREE.Texture(current);photoTexture.colorSpace=THREE.SRGBColorSpace;photoTexture.needsUpdate=true;
    uniforms.picture.value=photoTexture;uniforms.previousPicture.value=previousTexture||photoTexture;
-   const ratio=current.naturalWidth/current.naturalHeight/1.6;uniforms.crop.value.set(Math.min(1,1/ratio),Math.min(1,ratio));rect=current.getBoundingClientRect();
+   const ratio=current.naturalWidth/current.naturalHeight/(16/9);uniforms.crop.value.set(Math.min(1,1/ratio),Math.min(1,ratio));rect=current.getBoundingClientRect();
   }).catch(()=>{});
  }
  function backgroundFrame(event){

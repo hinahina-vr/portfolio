@@ -115,7 +115,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       const scene = new THREE.Scene();
       const camera = new THREE.Camera();
       const textureFor=img=>{const texture=new THREE.Texture(img);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;return texture;};
-      const cropFor=img=>{const ratio=img.naturalWidth/img.naturalHeight/1.6;return new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio));};
+      const cropFor=img=>{const ratio=img.naturalWidth/img.naturalHeight/(16/9);return new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio));};
       const material=new THREE.ShaderMaterial({
         vertexShader,fragmentShader,side:THREE.DoubleSide,depthTest:true,depthWrite:true,
         uniforms:{picture:{value:textureFor(previous)},nextPicture:{value:textureFor(incoming)},crop:{value:cropFor(previous)},nextCrop:{value:cropFor(incoming)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}

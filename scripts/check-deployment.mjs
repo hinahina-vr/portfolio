@@ -33,7 +33,7 @@ try{
       await expect(page.locator('.open-project')).toHaveAttribute('href',project.url);
       await expect(page.locator('.preview-link')).toHaveAttribute('href',project.url);
       await expect(page.locator('.preview-image')).toHaveAttribute('src',project.image);
-      const sourceWidth=category==='visual'?848:1440;
+      const sourceWidth=3840;
       await expect.poll(()=>page.locator('.preview-image').evaluate((img,width)=>img.complete&&img.naturalWidth===width,sourceWidth)).toBe(true);
     }
   }
