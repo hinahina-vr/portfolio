@@ -12,7 +12,7 @@ const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
 await mkdir('qa/v2.5.13',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
-const page=await browser.newPage({viewport:{width:1440,height:900}});
+const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
 const record=(name,details='')=>{results.push({name,status:'PASS',details});console.log('PASS:',name);};
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
@@ -27,7 +27,8 @@ try{
   await page.goto(url+'#works/web',{waitUntil:'networkidle'});
   await ready('kelp-current');
   await expect(page.locator('#slideshow-toggle')).toHaveCount(0);
-  // Hold slides with the supported motion preference; test background motion separately.
+  // Apply reduced motion before navigation so slow software-GPU startup cannot advance the slide.
+  // Background motion is enabled independently below; automatic advancement is covered by check-deployment.
   await page.emulateMedia({reducedMotion:'reduce'});
   await expect(page.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');
   await page.locator('.motion-toggle').click();

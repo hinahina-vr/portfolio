@@ -2,7 +2,7 @@ import {chromium,expect as baseExpect} from '@playwright/test';
 const expect=baseExpect.configure({timeout:10000});
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
-const output='qa/v2.5.13';await mkdir(output,{recursive:true});
+const output='qa/v2.6.0';await mkdir(output,{recursive:true});
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4195'],{stdio:'pipe',windowsHide:true});await new Promise(r=>server.stdout.once('data',r));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
@@ -19,7 +19,7 @@ try{
  await page.screenshot({path:output+'/wet-emergence.png'});
  await page.waitForTimeout(1200);
  await page.screenshot({path:output+'/ui-emergence.png'});
- const ui=await page.locator('.category-tabs,.project-strip,.canvas-controls').evaluateAll(nodes=>nodes.map(n=>({transform:getComputedStyle(n).transform,animations:n.getAnimations().length})));
+ const ui=await page.locator('.category-tabs,.profile-links,.project-strip,.canvas-controls').evaluateAll(nodes=>nodes.map(n=>({transform:getComputedStyle(n).transform,animations:n.getAnimations().length})));
  expect(ui.every(n=>n.animations>0)).toBe(true);
  await expect(page.locator('body')).not.toHaveAttribute('data-entrance','playing',{timeout:10000});
  await expect(page.locator('.preview-surface')).toHaveCSS('opacity','1');
@@ -52,4 +52,4 @@ try{
  pass('Reduced motion bypasses entrance');
  expect(errors).toEqual([]);
 }catch(error){results.push({status:'FAIL',details:error.stack});console.error(error);process.exitCode=1;}
-finally{await writeFile(output+'/entrance-results.json',JSON.stringify({version:'2.5.13',results,errors},null,2));await page.close();await browser.close();server.kill();}
+finally{await writeFile(output+'/entrance-results.json',JSON.stringify({version:'2.6.0',results,errors},null,2));await page.close();await browser.close();server.kill();}
