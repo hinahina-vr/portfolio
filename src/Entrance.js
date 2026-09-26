@@ -35,7 +35,7 @@ export function enterSite(reduced) {
   document.body.dataset.entrance='playing';
   reveal('.site-header,.collection',[{opacity:0},{opacity:1}],300,1400);
   reveal('.brand',[{opacity:0,filter:'blur(8px)'},{opacity:1,filter:'blur(0)'}],1300,1700);
-  for(const [selector,delay] of [['.category-tabs',1650],['.project-strip',1850],['.canvas-controls',2000]]){
+  for(const [selector,delay] of [['.category-tabs',1650],['.profile-links',1750],['.project-strip',1850],['.canvas-controls',2000]]){
    reveal(selector,[
     {opacity:0,transform:'perspective(700px) translateY(48px) rotateX(55deg) scale(.92,1.7)',filter:'url(#ui-emergence) blur(9px)',borderRadius:'60% 40% 45% 55% / 80% 70% 30% 20%'},
     {offset:.55,opacity:1,transform:'perspective(700px) translateY(-3px) rotateX(-6deg) scale(1.02,.92)',filter:'url(#ui-emergence) blur(.5px)'},

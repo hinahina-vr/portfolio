@@ -282,3 +282,23 @@ body.immersed .liquid-canvas{visibility:hidden}
 .card-title,.open-project{letter-spacing:-.01em}
 
 @media(prefers-reduced-motion:reduce){.preview-image{opacity:1!important}}
+
+/* Five categories and the author's destinations share the existing header. */
+.profile-links{display:flex;justify-self:end;align-items:center;gap:20px;font-size:12px;white-space:nowrap}
+.profile-links a{padding:10px 0;color:var(--muted);transition:color .2s}
+.profile-links a:hover{color:var(--ink)}
+@media(max-width:1100px) and (min-width:701px){
+ .site-header{height:auto;min-height:140px;grid-template-columns:1fr auto;gap:16px;padding:20px 0 8px}
+ .category-tabs{grid-row:2;grid-column:1/-1;justify-self:center}
+ .profile-links{grid-column:2;grid-row:1}
+}
+@media(max-width:700px){
+ .profile-links{gap:14px;font-size:11px;padding-top:4px}
+ .category-tabs button{padding:0 7px;font-size:11px;flex:1 1 auto}
+}
+@media(max-width:360px){.profile-links{gap:10px}.brand{min-width:140px}.category-tabs button{padding:0 5px;font-size:10px}}
+
+@media(max-width:850px){
+ .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line{display:block}
+ .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line+.title-line:before{content:none}
+}

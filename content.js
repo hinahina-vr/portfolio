@@ -11,6 +11,13 @@ export const categories = {
     {id:'lilian-loom',title:'Lilian Kaleido Loom',lines:['Lilian','Kaleido Loom'],medium:'Real-time fluid simulation',description:'流体の動きを鏡のように折り返し、糸を編んだような模様を生む作品。静かな織り目はポインターの動きに応じて密度を増し、操作の痕跡が流れの中へと運ばれていく。',image:'./assets/lilian-loom.png',url:'https://glsl-effects-showcase.pages.dev/',scene:'lilian-kaleido-loom',note:'GLSL Effects Showcase 収録。リンク先で「Lilian Kaleido Loom」を選択。'},
     {id:'botanical-tide',title:'Botanical Tide',lines:['Botanical','Tide'],medium:'Generative animation, GLSL',description:'暗がりの中で、枝分かれした葉脈と葉のような形がゆっくりと開く。反復する模様、揺れる曲線、脈打つ光をシェーダーで組み合わせ、水中の植物を思わせる像を描き出す。',image:'./assets/botanical-tide.png',url:'https://glsl-effects-showcase.pages.dev/',scene:'kelp-current',note:'GLSL Effects Showcase 収録。リンク先で「Botanical Tide」を検索。'}
   ]},
+  text:{label:'Text',projects:[
+    {id:'hinahina-text',title:'ワディーゲストハウス',lines:['ワディー','ゲストハウス'],medium:'Personal website, AI voices',description:'伝説のテキストサイト「絶望の世界」を意識して始めたはずが、二次元の嫁たちに囲まれる場所になった個人サイト。日記に「大奥AI」がコメントを寄せ、日常の記録にいくつもの声が重なる。「神話製作機械」を実際に動かす、一つのインスタンスでもある。',image:'./assets/hinahina-text.png',url:'https://hinahina-vr.github.io/',scene:'lilian-kaleido-loom',japanese:true,actionLabel:'Read website'},
+    {id:'hinahina-note',title:'note',lines:['note'],subtitle:'HINAHINA',medium:'Essays, field notes',description:'酒や食、VR、照明、中国語の学習。日々の関心と、手を動かして得た経験を文章に残す。個人的な記録から、制作現場の技術をひもとく記事までを収めた、もう一つの書く場所。',image:'./assets/hinahina-note.png',url:'https://note.com/hinahina_vr',scene:'kelp-current',actionLabel:'Read on note'}
+  ]},
+  video:{label:'Video',projects:[
+    {id:'maltbc',title:'モルトバトルちゃんねる',lines:['モルトバトル','ちゃんねる'],medium:'YouTube channel, whisky',description:'ウイスキーを飲み比べ、その違いを言葉と映像にするチャンネル。ボトルごとの味わいから蒸溜所を訪ねる旅まで、酒をめぐる体験を記録している。',image:'./assets/maltbc.png',url:'https://www.youtube.com/@maltbc',scene:'lilian-kaleido-loom',japanese:true,actionLabel:'Watch on YouTube'}
+  ]},
   experiments:{label:'Experiments',projects:[
     {id:'myth-making-machine',title:'神話製作機械',lines:['神話製作機械'],subtitle:'THE MYTH-MAKING MACHINE',medium:'Concept study, human agency',description:'データが導く「最適解」と、人が自ら選ぶことの関係を問う構想。未来の分岐を「神託」として差し出し、その意味を受け取ることも、退けることも、本人の意志に委ねる。',image:'./assets/myth-making-machine.png',url:'https://gaia-senseware.pages.dev/concept/#depth',scene:'fluid-chrome-stream',japanese:true,actionLabel:'Open concept'}
   ]}

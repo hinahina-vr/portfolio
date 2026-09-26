@@ -35,7 +35,7 @@ try{
   await page.evaluate(()=>document.fonts.ready);
   expect(await page.evaluate(()=>document.fonts.check('400 16px "Portfolio Grotesk"')&&document.fonts.check('700 16px "Portfolio Grotesk"'))).toBe(true);
   await expect(page.locator('.gallery h1,.portfolio-intro')).toHaveCount(0);
-  await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Experiments']);
+  await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Text','Video','Experiments']);
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('惑星の放課後');
   await expect(page.locator('.project-card').first()).toHaveAttribute('data-project','gaia-senseware');
   await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.png');
@@ -146,7 +146,7 @@ try{
     await page.setViewportSize(viewport);await page.goto(url,{waitUntil:'networkidle'});await ready();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     const canvasBox=await page.locator('.shader-canvas').boundingBox();expect(canvasBox.width).toBe(viewport.width);expect(canvasBox.height).toBe(viewport.height);
-    for(const cat of ['web','visual','experiments']){
+    for(const cat of Object.keys(categories)){
       await page.locator(`#tab-${cat}`).click();
       for(const project of categories[cat].projects){
         await page.locator(`.project-card[data-project="${project.id}"]`).click();
@@ -178,7 +178,7 @@ try{
     }
     await page.locator('#tab-web').click();await ready();await screenshot(`viewport-${viewport.width}`);
     if(viewport.width===390){await page.locator('#tab-web').click();await page.locator('[data-project="gaia-senseware"].project-card').click();await ready('kelp-current');await screenshot('mobile-gaia');}
-    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 7 large previews, no overflow or heading/CTA overlap`);
+    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 10 large previews, no overflow or heading/CTA overlap`);
   }
 
   const reduced=await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
@@ -192,8 +192,8 @@ try{
   await fallback.goto(url,{waitUntil:'networkidle'});await expect(fallback.locator('.art-fallback')).toBeVisible();await expect(fallback.locator('.motion-toggle')).not.toBeVisible();
   await fallback.locator('.project-card[data-project="quiz-pal"]').click();await expect(fallback.getByRole('heading',{level:2})).toHaveAccessibleName('Quiz Pal');await fallback.close();
   record('Simulated unavailable WebGL and denied storage: fallback image and project navigation work');
-  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(4);await noJs.close();
-  record('JavaScript disabled: all four live-site links remain available');
+  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(9);await noJs.close();
+  record('JavaScript disabled: all nine destination links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
 }catch(error){results.push({name:'v2.5.13 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
 finally{await writeFile('qa/v2.5.13/test-results.json',JSON.stringify({version:'2.5.13',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
