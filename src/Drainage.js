@@ -1,17 +1,13 @@
+import {wringPoint} from './WringShape.js';
 // Screen-space gravity routing over the same folded sheet as PanelTransition.
 // Water follows the steepest descending neighbour; outlet flux determines feed.
-export function sheetDrainage(rect,gather,curl){
+export function sheetDrainage(rect,gather,curl,gripLag=0){
  const nx=49,ny=25,points=[];
- const strength=Math.min(1,Math.abs(curl)/30.6);
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
-  const u=i/(nx-1),v=j/(ny-1),px=u*2-1,py=v*2-1;
-  const crossY=py*(1-gather)+(.14*Math.sin(py*7.2)+py*.035)*gather;
-  const crossZ=gather*(.115*Math.cos(py*7.2)+.026*Math.sin(py*19));
-  const compression=(1-strength*.30*(1-px*px))*(1-strength*.80),angle=px*curl*.5;
-  const y=(crossY*Math.cos(angle)-crossZ*Math.sin(angle))*compression-gather*(1-strength)*.07*(1-px*px);
-  const z=(crossY*Math.sin(angle)+crossZ*Math.cos(angle))*compression;
+  const u=i/(nx-1),v=j/(ny-1);
+  const {x,y,z}=wringPoint(u*2-1,v*2-1,gather,curl,gripLag);
   const perspective=1/(1+z*.22);
-  points.push({x:rect.x+rect.width*(.5+px*(1-gather*.16)*perspective*.5),y:rect.y+rect.height*(.5-y*perspective*.5),u,v,flux:1});
+  points.push({x:rect.x+rect.width*(.5+x*perspective*.5),y:rect.y+rect.height*(.5-y*perspective*.5),u,v,flux:1});
  }
  const order=points.map((_,i)=>i).sort((a,b)=>points[a].y-points[b].y);
  const outlets=[];

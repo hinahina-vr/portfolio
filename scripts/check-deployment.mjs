@@ -45,7 +45,7 @@ try{
   expect(popup.url()).toBe('https://gaia-senseware.pages.dev/concept/#depth');
   await expect(popup.getByRole('heading',{name:'神話製作機械',exact:true})).toBeInViewport();
   await popup.close();
-  pass('All ten public images and Japanese captions load; new concept link opens its actual section and selection survives reload');
+  pass('All twelve public previews and Japanese captions load; new concept link opens its actual section and selection survives reload');
   await expect(page.locator('.menu-toggle,#site-menu')).toHaveCount(0);
   await page.locator('#tab-web').click();
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');

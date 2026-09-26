@@ -13,7 +13,9 @@ export const categories = {
   ]},
   text:{label:'Text',projects:[
     {id:'hinahina-text',title:'ワディーゲストハウス',lines:['ワディー','ゲストハウス'],medium:'Personal website, AI voices',description:'伝説のテキストサイト「絶望の世界」を意識して始めたはずが、二次元の嫁たちに囲まれる場所になった個人サイト。日記に「大奥AI」がコメントを寄せ、日常の記録にいくつもの声が重なる。「神話製作機械」を実際に動かす、一つのインスタンスでもある。',image:'./assets/hinahina-text.png',url:'https://hinahina-vr.github.io/',scene:'lilian-kaleido-loom',japanese:true,actionLabel:'Read website'},
-    {id:'hinahina-note',title:'note',lines:['note'],subtitle:'HINAHINA',medium:'Essays, field notes',description:'酒や食、VR、照明、中国語の学習。日々の関心と、手を動かして得た経験を文章に残す。個人的な記録から、制作現場の技術をひもとく記事までを収めた、もう一つの書く場所。',image:'./assets/hinahina-note.png',url:'https://note.com/hinahina_vr',scene:'kelp-current',actionLabel:'Read on note'}
+    {id:'hinahina-note',title:'note',lines:['note'],subtitle:'HINAHINA',medium:'Essays, field notes',description:'酒や食、VR、照明、中国語の学習。日々の関心と、手を動かして得た経験を文章に残す。個人的な記録から、制作現場の技術をひもとく記事までを収めた、もう一つの書く場所。',image:'./assets/hinahina-note.png',url:'https://note.com/hinahina_vr',scene:'kelp-current',actionLabel:'Read on note'},
+    {id:'hinahina-x',title:'X',lines:['X'],subtitle:'@HINAHINA_VR',medium:'Short notes, conversations',description:'日々のこと、制作の途中、気になったもの。短い言葉とやりとりを重ねていく、ひなひなのXアカウント。',image:'./assets/hinahina-x.png',imageAlt:'X — @hinahina_vr のアカウントカード',url:'https://x.com/hinahina_vr',scene:'lilian-kaleido-loom',actionLabel:'Open X'},
+    {id:'hinahina-github',title:'GitHub',lines:['GitHub'],subtitle:'HINAHINA-VR',medium:'Source code, project notes',description:'Webサイトやアプリのソースコード、制作の記録を公開する場所。作品を動かす仕組みと、その変更の積み重ねをたどることができる。',image:'./assets/hinahina-github.png',url:'https://github.com/hinahina-vr',scene:'kelp-current',actionLabel:'Open GitHub'}
   ]},
   video:{label:'Video',projects:[
     {id:'maltbc',title:'モルトバトルちゃんねる',lines:['モルトバトル','ちゃんねる'],medium:'YouTube channel, whisky',description:'ウイスキーを飲み比べ、その違いを言葉と映像にするチャンネル。ボトルごとの味わいから蒸溜所を訪ねる旅まで、酒をめぐる体験を記録している。',image:'./assets/maltbc.png',url:'https://www.youtube.com/@maltbc',scene:'lilian-kaleido-loom',japanese:true,actionLabel:'Watch on YouTube'}

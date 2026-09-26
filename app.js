@@ -73,13 +73,13 @@ function render(nextCategory='web',id,updateHistory=false){
       ${project.note?`<p class="project-note">${escapeHtml(project.note)}</p>`:''}
     </div>
     <figure class="project-preview">
-      <a class="preview-link" href="${escapeHtml(safeUrl(project.url))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(project.title)}のプレビューからサイトを開く（新しいタブ）"><span class="preview-surface"><img class="preview-image" src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}の実際の画面" width="3840" height="2160" fetchpriority="high"></span></a>
+      <a class="preview-link" href="${escapeHtml(safeUrl(project.url))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(project.title)}のプレビューからサイトを開く（新しいタブ）"><span class="preview-surface"><img class="preview-image" src="${escapeHtml(project.image)}" alt="${escapeHtml(project.imageAlt||`${project.title}の実際の画面`)}" width="3840" height="2160" fetchpriority="high"></span></a>
     </figure>
   </article>`;
   liquidSurface().setSurface(panel.querySelector('.preview-surface'));
   disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle);
   strip.dataset.count=String(data.projects.length);
-  strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}の実際の画面" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
+  strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   setScene(project.scene);
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);
   document.title=`${project.title} — hinahina`;

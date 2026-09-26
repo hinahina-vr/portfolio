@@ -1,4 +1,4 @@
-# hinahina — Web, art & words — v2.6.0
+# hinahina — Web, art & words — v2.6.1
 
 ユーザー自身の GLSL Effects Showcase の描画コードを直接使った、全画面WebGLのポートフォリオです。背景は画像・iframeではなく、元サイトと同じ流体シミュレーションとシェーダーで動きます。
 
@@ -107,6 +107,8 @@ v2.5.13: 一枚の画像を3.2秒で強く絞り、最大ひねり30.6rad・断�
 
 切替終了では通常画面を先に描画し、ブラックアウトを防止。検証: npm test、node scripts/check-wring.mjs、node scripts/check-liquid.mjs、node scripts/check-handoff.mjs、node scripts/check-entrance.mjs、node scripts/check-drainage.mjs。録画は行いません。調査記録: research/motion-study/NOTES.md。
 
-## Text / Video（v2.6.0）
+## Text / Video（v2.6.1）
 
-Text: ワディーゲストハウス、note。Video: モルトバトルちゃんねる。ヘッダーにX・note・GitHub。新規3画像も1920×1080 / DPR2の実ブラウザーから3840×2160 PNGで撮影。`scripts/capture-text-video.mjs`で再取得し、`scripts/check-text-video.mjs [URL]`でカテゴリ、リンク、新規タブ、リロード、320〜1440pxの表示を検証できます。X本体は検証環境で接続不可になるため、外部表示不能とリンク動作を区別して記録します。
+Text: ワディーゲストハウス、note、X、GitHub。Video: モルトバトルちゃんねる。ヘッダーにX・note・GitHub。新規3画像も1920×1080 / DPR2の実ブラウザーから3840×2160 PNGで撮影。`scripts/capture-text-video.mjs`で再取得し、`scripts/check-text-video.mjs [URL]`でカテゴリ、リンク、新規タブ、リロード、320〜1440pxの表示を検証できます。X本体は検証環境で接続不可になるため、外部表示不能とリンク動作を区別して記録します。
+
+絞りの形状は `src/WringShape.js`。左右の握り高さ・位相差、偏ったくびれ、しわと厚み、重みによるたわみを使う演出モデルで、布の自己衝突を解く物理ソルバーではありません。`scripts/check-wring-shape.mjs` はWebGL2 transform feedbackでGPU頂点を読み戻し、CPUの排水面と一致すること・出口流量保存を検証します。Xは撮影時のHTTP接続制限により、実画面を偽装せず `hinahina-x.svg` から生成したアカウントカードを使用します。

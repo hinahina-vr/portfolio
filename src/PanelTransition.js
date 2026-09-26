@@ -1,3 +1,4 @@
+import {wringShapeGLSL,gripOffset} from './WringShape.js';
 import {sheetDrainage} from './Drainage.js';
 import {liquidSurface} from './LiquidSurface.js';
 const motionDuration=3200;
@@ -9,6 +10,7 @@ import {motionType} from './MotionType.js';
 let renderer;
 const vertexShader = `
   uniform float curl;
+  uniform float gripLag;
   uniform float gather;
 
 
@@ -17,21 +19,12 @@ const vertexShader = `
 
   varying vec2 imageUv;
   varying vec3 surfacePosition;
+  ${wringShapeGLSL}
   void main() {
     imageUv = uv;
-    // Gather the width into longitudinal folds before applying opposing torsion.
-    // End separation decreases as the cloth becomes a compact bundle.
-    float strength=clamp(abs(curl)/30.6,0.,1.);
-    float fold=position.y*7.2;
-    float crossY=mix(position.y,.14*sin(fold)+position.y*.035,gather);
-    float crossZ=gather*(.115*cos(fold)+.026*sin(position.y*19.));
-    float compression=(1.-strength*.30*(1.-position.x*position.x))*(1.-strength*.80);
-    float angle=position.x*curl*.5;
-    float y=(crossY*cos(angle)-crossZ*sin(angle))*compression;
-    float z=(crossY*sin(angle)+crossZ*cos(angle))*compression;
-    float x=position.x*(1.-gather*.16);
-    y-=gather*(1.-strength)*.07*(1.-position.x*position.x);
-    surfacePosition=vec3(x,y,z);
+    vec3 shape=wringPoint(position.xy,gather,curl,gripLag);
+    float x=shape.x,y=shape.y,z=shape.z;
+    surfacePosition=shape;
     float perspective=1./(1.+z*.22);
     vec2 p=vec2(x,y)*perspective*size+center;
     gl_Position=vec4(p,-z*.15,1.);
@@ -118,7 +111,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       const cropFor=img=>{const ratio=img.naturalWidth/img.naturalHeight/(16/9);return new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio));};
       const material=new THREE.ShaderMaterial({
         vertexShader,fragmentShader,side:THREE.DoubleSide,depthTest:true,depthWrite:true,
-        uniforms:{picture:{value:textureFor(previous)},nextPicture:{value:textureFor(incoming)},crop:{value:cropFor(previous)},nextCrop:{value:cropFor(incoming)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}
+        uniforms:{picture:{value:textureFor(previous)},nextPicture:{value:textureFor(incoming)},crop:{value:cropFor(previous)},nextCrop:{value:cropFor(incoming)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},gripLag:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}
       });
       const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,160,80),material);
       meshes.push(mesh);scene.add(mesh);
@@ -149,12 +142,13 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
         const twist=elapsed<1900?1-Math.pow(1-elapsed/1900,4):
           elapsed<2400?1:Math.pow(1-release,3.4);
         sheet.curl.value=twist*30.6;
+        sheet.gripLag.value=gripOffset(elapsed);
         sheet.gather.value=elapsed<2400?1-Math.pow(1-Math.min(1,elapsed/450),3):Math.pow(1-release,2.4);
         sheet.blend.value=smooth(release/.85);
         sheet.bleach.value=.92*smooth(elapsed/2200)+.08*smooth((elapsed-2200)/190);
         sheet.time.value=now/1000;
         const source=previousRect||targetRect;
-        liquidSurface().setWring({rect:{x:source.x,width:source.width,bottom:source.y+source.height*(1.-sheet.gather.value*.40),height:source.height},pressure:twist,blend:sheet.blend.value,emitters:sheetDrainage(source,sheet.gather.value,sheet.curl.value)});
+        liquidSurface().setWring({rect:{x:source.x,width:source.width,bottom:source.y+source.height*(1.-sheet.gather.value*.40),height:source.height},pressure:twist,blend:sheet.blend.value,emitters:sheetDrainage(source,sheet.gather.value,sheet.curl.value,sheet.gripLag.value)});
         const placementMix=smooth(release);
         sheet.size.value.set(THREE.MathUtils.lerp(origin.w,target.w,placementMix),THREE.MathUtils.lerp(origin.h,target.h,placementMix));
         sheet.center.value.set(THREE.MathUtils.lerp(origin.x,target.x,placementMix),THREE.MathUtils.lerp(origin.y,target.y,placementMix));

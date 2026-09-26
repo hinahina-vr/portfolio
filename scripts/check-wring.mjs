@@ -2,7 +2,7 @@ import {chromium,expect as baseExpect} from '@playwright/test';
 const expect=baseExpect.configure({timeout:10000});
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
-await mkdir('qa/v2.5.15',{recursive:true});
+await mkdir('qa/v2.6.1',{recursive:true});
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4196'],{stdio:'pipe',windowsHide:true});await new Promise(r=>server.stdout.once('data',r));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
@@ -36,7 +36,7 @@ try{
  await expect(page.locator('.panel-canvas')).toHaveCount(1);
  const type=await page.locator('[data-motion-layer=incoming]').first().evaluate(el=>{const animation=el.getAnimations()[0];return{ease:animation.effect.getTiming().easing,duration:animation.effect.getTiming().duration,startX:new DOMMatrix(animation.effect.getKeyframes()[0].transform).m41,width:innerWidth};});
  expect(type.startX).toBeGreaterThan(type.width);expect(type.ease).toBe('cubic-bezier(0.08, 1, 0.12, 1)');
- await page.waitForTimeout(1750);await page.screenshot({path:'qa/v2.5.15/wring-peak.png'});
+ await page.waitForTimeout(1750);await page.screenshot({path:'qa/v2.6.1/wring-peak.png'});
  await expect(page.locator('.panel-canvas')).toHaveCount(0);
  const {life,draws,forces}=await page.evaluate(()=>({life:window.particleLife,draws:window.panelDraws,forces:window.paintForces}));
  let resets=0;
@@ -55,7 +55,7 @@ try{
  expect(peak.curl).toBeGreaterThan(30.5);expect(peak.blend).toBeLessThan(.03);expect(draws.find(d=>d.time-draws[0].time>=500).bleach).toBeGreaterThan(.1);
  expect(draws.find(d=>d.time-draws[0].time>=1100).bleach).toBeGreaterThan(.45);
  expect(draws.find(d=>d.time-draws[0].time>=1800).bleach).toBeGreaterThan(.8);
- await writeFile('qa/v2.5.15/bleach-frames.json',JSON.stringify(draws,null,2));
+ await writeFile('qa/v2.6.1/bleach-frames.json',JSON.stringify(draws,null,2));
  const tightening=draws.filter(d=>d.blend===0);expect(tightening.every((d,i)=>!i||d.bleach>=tightening[i-1].bleach)).toBe(true);
  expect(draws.some(d=>d.bleach>.99&&d.blend===0)).toBe(true);
  expect(draws.some(draw=>draw.blend>.2&&draw.blend<.8&&draw.curl<peak.curl&&draw.curl>.05)).toBe(true);
@@ -63,8 +63,8 @@ try{
  expect(draws.find(d=>d.blend>.01).time-draws[0].time).toBeGreaterThan(2350);
  expect(draws.at(-1).time-draws[0].time).toBeGreaterThan(3100);
  const held=draws.filter(d=>d.curl>7.8&&d.blend<.03);expect(held.at(-1).time-held[0].time).toBeGreaterThan(1200);
- await writeFile('qa/v2.5.15/single-surface-frames.json',JSON.stringify(draws,null,2));
+ await writeFile('qa/v2.6.1/single-surface-frames.json',JSON.stringify(draws,null,2));
  await page.locator('[data-project="gaia-senseware"].project-card').click();await expect(page.locator('.panel-canvas')).toHaveCount(1);await expect(page.locator('.panel-canvas')).toHaveCount(0);
- await writeFile('qa/v2.5.15/wring-results.json',JSON.stringify({version:'2.5.15',status:'PASS',type,checks:['Title starts beyond right viewport boundary','Strong ease-out applies independently','Wring renders and returns to flat image','Reverse selection completes']},null,2));
+ await writeFile('qa/v2.6.1/wring-results.json',JSON.stringify({version:'2.6.1',status:'PASS',type,checks:['Title starts beyond right viewport boundary','Strong ease-out applies independently','Wring renders and returns to flat image','Reverse selection completes']},null,2));
  console.log('PASS: offscreen strong ease-out text and torsion capture');
 }finally{await page.close();await browser.close();server.kill();}

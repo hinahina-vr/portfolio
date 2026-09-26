@@ -179,7 +179,7 @@ try{
     }
     await page.locator('#tab-web').click();await ready();await screenshot(`viewport-${viewport.width}`);
     if(viewport.width===390){await page.locator('#tab-web').click();await page.locator('[data-project="gaia-senseware"].project-card').click();await ready('kelp-current');await screenshot('mobile-gaia');}
-    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 10 large previews, no overflow or heading/CTA overlap`);
+    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 12 large previews, no overflow or heading/CTA overlap`);
   }
 
   const reduced=await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
