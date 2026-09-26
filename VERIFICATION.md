@@ -1,6 +1,10 @@
-# v2.5.13 release candidate — 2026-09-26
+# v2.5.13 — published and verified 2026-09-27 JST
 
-公開前ローカル確認。JS index-DRP6HpmE.js / CSS index-D_Vj_F6G.css。
+公開コミット a4699310de3579aaf146e79c1a74a88fd915a193。GitHub Actions 36250135694 build/deploy 成功。公開URL https://hinahina-vr.github.io/portfolio/ 。
+
+公開後check-deployment 5項目PASS: 実自動切替・全7作品・実外部リンク・履歴・390px表示・資産取得・build.jsonのversion/commit一致。public-handoffも往復2回PASS: canvas除去瞬間の通常画像alpha=255、surfaceWet=1。英字フォントregular/boldの読込、Index不在を確認。public-desktop.pngと公開復帰後の静止画を目視。記録はqa/deployment/public-results.json と qa/v2.5.13/public-handoff-results.json。
+
+ローカル確認。JS index-DRP6HpmE.js / CSS index-D_Vj_F6G.css。
 
 変更: ひねり10.2→30.6rad、断面80%圧縮をGPU面と集水計算の双方に適用。生存粒子を再利用しない。色と半径を発生時のGPU状態として保持。切替終了時は通常面を同期描画してから転換用canvasを削除。Index削除、3か所のUIの変位・粘性風登場、TeX Gyre Heros regular/boldを公式CTAN配布から同梱。
 
@@ -12,7 +16,7 @@
 - check-liquid PASS: 実GPUソルバー、通常滴下、加速、停止再開、390px、reduced motion、シェーダーエラーなし。JS同一の直前CSS版。
 - check-drainage PASS: 集水量保存、下端・折り目出口。
 
-UI登場・紐状の絞り・復帰後の静止画を目視確認。qa/v2.5.13/に結果。UI変位はSVG/CSS、液体と面変形はGLSL。流体・布の実測物理シミュレーションと同一とは主張しない。実スマホ・Safari/Firefoxは未確認。公開検証は配信後に追記。動画撮影なし。
+UI登場・紐状の絞り・復帰後の静止画を目視確認。qa/v2.5.13/に結果。UI変位はSVG/CSS、液体と面変形はGLSL。流体・布の実測物理シミュレーションと同一とは主張しない。実スマホ・Safari/Firefoxは未確認。公開実配信の検証は上記。動画撮影なし。
 
 ---
 
