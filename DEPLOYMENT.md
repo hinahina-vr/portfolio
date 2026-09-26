@@ -15,4 +15,15 @@ The first publication preserves the verified v2.3.2 application, imagery and sty
 
 The workflow follows the official [Vite GitHub Pages guide](https://vite.dev/guide/static-deploy.html#github-pages), with separate build and deployment jobs and pinned official Actions. Pages uses the workflow build type described in [GitHub's API documentation](https://docs.github.com/en/rest/pages/pages#create-a-github-pages-site).
 
-Deployment completion and actual public-site verification will be recorded below after the first run finishes.
+## Completed publication — 2026-09-26
+
+- Published application revision: `82282d67261ab917fc327b1d7c6372906e55a631`.
+- [Successful build and deployment](https://github.com/hinahina-vr/portfolio/actions/runs/36228224339).
+- GitHub Actions performed a clean npm install, built the site and passed all 17 browser checks before publishing. The responsive layout matrix pauses background motion after the dedicated motion tests; it still renders actual frames on scene changes and resizing.
+- Public HTTPS URL was opened in real Google Chrome 153.0.8010.53 at 2026-09-26 08:01 UTC. All 5 public-site checks passed: initial Gaia display and actual timed slide, all 7 work images and Japanese descriptions, concept link and retained selection, Index/mobile layout, and deployed revision metadata. No application or public-asset request errors.
+- Visually reviewed the actual public desktop page and the mobile Experiments page. Local evidence: `qa/deployment/public-results.json`, `public-desktop.png`, `public-mobile.png`, `public-experiment-mobile.png`, and `github-actions-passed.log`.
+- The local rebuilt site's 19 files matched the previously verified v2.3.2 SHA256 record. The publication does not change the site's design or project content.
+
+The first clean install exposed a corrupted detect-libc lock entry. It was restored to the actual installed and registry-verified version 2.1.2, with the original integrity hash. All locally installed package versions then matched the lockfile. An earlier browser run was stopped after 10 passing checks because continuous software rendering made the layout matrix slow; that interrupted run is not counted as a passed suite. Its log and the initial install failure are retained under `qa/deployment/`.
+
+The final documentation-only commit records this deployment and does not rebuild the site. The revision endpoint intentionally identifies the tested application commit above. Mobile verification uses Chrome viewport emulation, not physical iPhone/Android devices; Safari and Firefox are untested. External project links were opened, but the other applications' complete internal functionality was not tested.
