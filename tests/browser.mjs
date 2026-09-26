@@ -136,6 +136,9 @@ try{
   await page.keyboard.press('Escape');await expect(page.locator('.immerse-toggle')).toBeFocused();await expect(page.locator('#interface')).toHaveJSProperty('inert',false);
   record('Background controls, intensity/speed, immersive view and Escape return');
 
+  // Motion is verified above. Freeze continuous GPU work during the layout matrix;
+  // scene changes and resizing still produce real rendered frames while paused.
+  if(await page.locator('.motion-toggle').getAttribute('aria-pressed')==='false')await page.locator('.motion-toggle').click();
   for(const viewport of [{width:1920,height:1080},{width:1440,height:700},{width:768,height:1024},{width:390,height:844},{width:320,height:740}]){
     await page.setViewportSize(viewport);await page.goto(url,{waitUntil:'networkidle'});await ready();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
