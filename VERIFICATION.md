@@ -1,3 +1,11 @@
+# v2.5.14 — 2026-09-27
+
+中国地図作品を「一帯一旅 ～中国の街をめぐる旅の地図～」へ改名。大見出しは一帯一旅、副題は日本語の小見出しとして配置。作品一覧・代替テキスト・リンクのアクセシブル名・meta description・noscriptも新名称。URLと説明は維持。
+
+ビルド成功。Chromeで作品選択・見出し・副題・日本語lang・一覧・1440/390pxの実表示と横溢れなしを確認。qa/v2.5.14/title-*.png。公開確認は配信後に追記。
+
+---
+
 # v2.5.13 — published and verified 2026-09-27 JST
 
 公開コミット a4699310de3579aaf146e79c1a74a88fd915a193。GitHub Actions 36250135694 build/deploy 成功。公開URL https://hinahina-vr.github.io/portfolio/ 。

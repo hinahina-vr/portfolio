@@ -65,7 +65,7 @@ function render(nextCategory='web',id,updateHistory=false){
     <div class="project-info">
       <h2 class="project-title ${project.japanese?'japanese':''}" aria-label="${escapeHtml(project.title)}">${project.lines.map(line=>`<span class="title-line">${escapeHtml(line)}</span>`).join('')}</h2>
       <div class="project-label" lang="en">
-        ${project.subtitle?`<p class="project-subtitle">${escapeHtml(project.subtitle)}</p>`:''}
+        ${project.subtitle?`<p class="project-subtitle" lang="${project.subtitleLang||'en'}">${escapeHtml(project.subtitle)}</p>`:''}
         <p class="project-medium">${escapeHtml(project.medium)}</p>
         <p class="project-description" lang="ja">${escapeHtml(project.description)}</p>
       </div>

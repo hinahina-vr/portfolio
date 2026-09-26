@@ -4,7 +4,7 @@ export const categories = {
   web: {label:'Web', projects:[
     {id:'gaia-senseware',title:'惑星の放課後',lines:['惑星の放課後'],subtitle:'GAIA SENSATION',medium:'Interactive narrative, open data',description:'地球の観測データを、光や波紋へと変換するインタラクティブ作品。登場人物たちとの出会いをたどりながら、数値だけでは捉えにくい地球の変化を、視覚と物語を通して体験する。',image:'./assets/gaia-senseware.jpg',url:'https://gaia-senseware.pages.dev/',scene:'kelp-current',japanese:true},
     {id:'glsl-showcase',title:'GLSL Effects Showcase',lines:['GLSL Effects','Showcase'],medium:'WebGL studies',description:'流体、粒子、光のふるまいを探るシェーダー作品集。コードがリアルタイムに像を描き出す。操作に反応する作品では、鑑賞者の動きも画面を構成する要素となる。',image:'./assets/glsl-showcase.jpg',url:'https://glsl-effects-showcase.pages.dev/',scene:'lilian-kaleido-loom'},
-    {id:'chinameng',title:'鉄道でつなぐ中国の街',lines:['鉄道でつなぐ','中国の街'],medium:'Interactive cartography',description:'中国の鉄道網、都市、世界遺産を重ねたインタラクティブな地図。旅の経路や訪れた場所の記録が加わることで、広い国土を俯瞰する地図が、一人ひとりの旅の軌跡へと変わっていく。',image:'./assets/chinameng.jpg',url:'https://chinameng.pages.dev/',scene:'lilian-kaleido-loom',japanese:true},
+    {id:'chinameng',title:'一帯一旅 ～中国の街をめぐる旅の地図～',lines:['一帯一旅'],subtitle:'～中国の街をめぐる旅の地図～',subtitleLang:'ja',medium:'Interactive cartography',description:'中国の鉄道網、都市、世界遺産を重ねたインタラクティブな地図。旅の経路や訪れた場所の記録が加わることで、広い国土を俯瞰する地図が、一人ひとりの旅の軌跡へと変わっていく。',image:'./assets/chinameng.jpg',url:'https://chinameng.pages.dev/',scene:'lilian-kaleido-loom',japanese:true},
     {id:'quiz-pal',title:'Quiz Pal',lines:['Quiz Pal'],medium:'Browser-based learning application',description:'問題集と学習履歴を軸に構成した、ブラウザー上の学習環境。問題をつくり、書き直し、繰り返し解く。学びの積み重ねに応じて、教材そのものも変化していく。',image:'./assets/quiz-pal.jpg',url:'https://hinahina-vr.github.io/quiz-pal/',scene:'lilian-kaleido-loom'}
   ]},
   visual:{label:'Visual',projects:[

@@ -1,4 +1,4 @@
-# hinahina — Web & interactive works — v2.5.13
+# hinahina — Web & interactive works — v2.5.14
 
 ユーザー自身の GLSL Effects Showcase の描画コードを直接使った、全画面WebGLのポートフォリオです。背景は画像・iframeではなく、元サイトと同じ流体シミュレーションとシェーダーで動きます。
 
@@ -38,7 +38,7 @@ npm run preview
 
 - 惑星の放課後 — https://gaia-senseware.pages.dev/
 - GLSL Effects Showcase — https://glsl-effects-showcase.pages.dev/
-- 鉄道でつなぐ中国の街 — https://chinameng.pages.dev/
+- 一帯一旅 ～中国の街をめぐる旅の地図～ — https://chinameng.pages.dev/
 - Quiz Pal — https://hinahina-vr.github.io/quiz-pal/
 
 VisualはGLSL Effects Showcase内のスタディです。Experimentsには「神話製作機械」を掲載し、コンセプトページの該当箇所（https://gaia-senseware.pages.dev/concept/#depth）へ直接リンクしています。
