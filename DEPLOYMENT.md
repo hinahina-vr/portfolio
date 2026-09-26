@@ -2,7 +2,7 @@
 
 - Repository: https://github.com/hinahina-vr/portfolio
 - Site: https://hinahina-vr.github.io/portfolio/
-- Application version: 2.3.3
+- Application version: 2.4.0
 - Publishing branch: main
 - Build: Node.js 22, npm ci, npm run build
 - Verification gate: npm test against built dist in Chromium
@@ -28,8 +28,14 @@ The first clean install exposed a corrupted detect-libc lock entry. It was resto
 
 Documentation-only commits record deployments without rebuilding the site. The revision endpoint identifies the deployed application commit. Mobile verification uses Chrome viewport emulation, not physical iPhone/Android devices; Safari and Firefox are untested. External project links were opened, but the other applications' complete internal functionality was not tested.
 
-## Current publication — v2.3.3 / 2026-09-26
+## Previous publication — v2.3.3 / 2026-09-26
 
 Removed the slideshow pause/play button while preserving automatic transitions. Published commit: `fb413c468a65bb67a28a99585d17ba758baf47de`. [Build, all 17 browser checks and deployment passed](https://github.com/hinahina-vr/portfolio/actions/runs/36239069039).
 
 The actual public site passed 5 browser checks, including the absent button, timed autoplay, all project previews and links, mobile layout, and matching build metadata. Desktop and mobile public captures were visually inspected. Evidence: `qa/deployment/public-results.json` and `qa/deployment/public-*.png`; dedicated real-time regressions: `qa/v2.3.3/slideshow-results.json` (5 PASS). The previous public verification is archived in `qa/v2.3.2/deployment/`.
+
+## Current publication — v2.4.0 / 2026-09-26
+
+Rebalanced the exhibition layout: artwork left, caption right, shared header/gallery/footer alignment, and a sequential mobile layout. Published application commit: `87da51cfa9a6a111bf94cf7fa226724883620580`. [Build, all 17 browser checks and deployment passed](https://github.com/hinahina-vr/portfolio/actions/runs/36239982773).
+
+The final local build passed 63 layout checks, 14 caption checks and 5 real-time slideshow checks. The actual public site passed all 5 deployment checks, including real timed autoplay and matching release metadata. Public desktop and mobile screenshots were visually reviewed. Evidence: `qa/v2.4.0/`, `qa/deployment/public-results.json` and `qa/deployment/public-*.png`. Previous deployment evidence is archived in `qa/v2.3.3/deployment/`. Device/browser limitations remain as described above.
