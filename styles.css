@@ -1,0 +1,247 @@
+@charset "UTF-8";
+
+:root {
+  --accent:#43d9e6;
+  --ink:#f3f2eb;
+  --muted:#becbc9;
+  --line:#e7f3ee30;
+  color:var(--ink);
+  background:#04090b;
+  font-family:Arial,"Noto Sans JP","Yu Gothic",sans-serif;
+  font-synthesis:none;
+  -webkit-font-smoothing:antialiased;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;min-width:320px}
+button,input,select{font:inherit}
+button,a,input,select{touch-action:manipulation}
+button{cursor:pointer;color:inherit;border:0;background:none}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+h1,h2,h3,p{margin:0}
+[hidden]{display:none!important}
+::selection{background:var(--accent);color:#04090b}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+.skip-link{position:fixed;left:20px;top:15px;z-index:50;background:#050c11;padding:12px}
+.skip-link:not(:focus){clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+
+/* The creator's original renderer is the full-screen canvas. */
+.art-stage{position:fixed;inset:0;z-index:0;background:#04090b;overflow:hidden}
+.art-stage #background-root,.shader-stage{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.shader-canvas,.gesture-trail-overlay{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.gesture-trail-overlay{pointer-events:none}
+.art-paused .shader-canvas{pointer-events:none}
+.pipeline-status,.shader-error{display:none}
+.art-fallback{position:absolute;inset:0;background:url('./assets/lilian-loom.jpg') center/cover;display:none}
+.no-webgl .art-fallback{display:block}
+.edge-shade{pointer-events:none;position:fixed;inset:0;z-index:1;background:linear-gradient(180deg,#01080b7a,transparent 22%,transparent 50%,#01080b6b 80%,#01080bc9),linear-gradient(90deg,#01080b8a,transparent 64%);transition:opacity .4s}
+
+/* Compact author identity and distinct, usable navigation. */
+.interface{position:relative;z-index:2;min-height:100svh;display:flex;flex-direction:column;padding:0 4vw;pointer-events:none;transition:opacity .35s}
+.interface a,.interface button,.interface input,.interface select,.scene-settings{pointer-events:auto}
+.site-header{height:104px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:20px;min-width:280px}
+.brand h1{font-size:34px;font-weight:650;line-height:1;letter-spacing:-1.8px}
+.brand-description{font-size:11px;line-height:1.45;max-width:110px;color:#d2dcd7}
+.category-tabs{display:flex;align-items:center;gap:3px;padding:4px;border:1px solid #c4dfd02b;border-radius:99px;background:#061a2059;backdrop-filter:blur(12px)}
+.category-tabs button{min-height:37px;padding:0 24px;border-radius:99px;font-size:13px;color:#d3ddd8;transition:background .2s,color .2s}
+.category-tabs button[aria-selected=true]{color:#13221e;background:var(--ink)}
+.category-tabs button:hover:not([aria-selected=true]){background:#d4efdc1a;color:#fff}
+.menu-toggle{display:flex;gap:23px;align-items:center;justify-content:center;font-size:13px;padding:0 20px;min-width:106px;min-height:46px;border:1px solid #d6e9e357;border-radius:99px;background:#071a2359;backdrop-filter:blur(10px);transition:background .2s,border-color .2s}
+.menu-toggle svg{width:18px;height:18px}
+.menu-toggle:hover{background:#2a474b8a;border-color:#e2f6edaa}
+
+/* A large image sits above the lower-left title; the image and type are not equal columns. */
+.gallery{flex:1;position:relative;display:flex;align-items:center;padding:16px 0 66px;min-width:0}
+.work-panel{width:100%;max-width:1800px;margin:0 auto;min-width:0;outline-offset:12px}
+.work-content{--preview-width:min(69%,1100px);position:relative;display:grid;align-items:end;min-height:clamp(480px,calc(100svh - 330px),790px);padding-top:45px;isolation:isolate;animation:work-change .48s cubic-bezier(.22,.68,.2,1) both}
+.project-preview{position:absolute;z-index:0;right:0;top:0;width:var(--preview-width);margin:0}
+.preview-link{position:relative;display:block;outline-offset:7px}
+.preview-surface{display:block;overflow:hidden;border:1px solid #d0ece432;box-shadow:0 30px 80px -30px #01090e7a}
+.preview-image{display:block;width:100%;height:auto;aspect-ratio:1.6;object-fit:cover;opacity:.8;filter:saturate(.88);transition:opacity .3s,filter .3s}
+.preview-link:hover .preview-image,.preview-link:focus-visible .preview-image{opacity:.92;filter:saturate(1)}
+.project-info{position:relative;z-index:1;min-width:0;width:100%;margin-bottom:18px}
+.project-title{font-size:clamp(56px,6.4vw,108px);font-weight:400;line-height:.98;letter-spacing:-.065em;text-shadow:0 3px 28px #00101680;max-width:min(850px,58%)}
+.project-title .title-line{display:block}
+.project-title.japanese{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-weight:400;font-size:clamp(51px,5.1vw,88px);letter-spacing:-.055em;line-height:1.18}
+.project-label{max-width:min(440px,calc(100% - var(--preview-width) - 24px));margin-top:25px;padding-top:15px;border-top:1px solid #e7f3ee57}
+.project-subtitle{font-size:12px;font-weight:400;letter-spacing:.04em;line-height:1.5;color:#f0f1e8;margin-bottom:5px}
+.project-medium{font-size:11px;line-height:1.5;letter-spacing:.015em;color:#c4d2c9}
+.project-description{font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-size:15px;line-height:1.95;letter-spacing:.025em;line-break:strict;color:#edf0e6;margin-top:16px;text-shadow:0 2px 16px #001016}
+.project-action-row{display:flex;align-items:center;margin-top:25px}
+.open-project{display:inline-flex;align-items:center;justify-content:center;min-height:48px;min-width:162px;padding:0 26px;border:1px solid #f7f6ebc9;border-radius:99px;color:#15221f;background:var(--ink);font-size:13px;font-weight:500;box-shadow:0 5px 22px #01101528;transition:background .2s,box-shadow .2s,transform .2s}
+.open-project:hover{background:#fff;box-shadow:0 7px 26px #01101540;transform:translateY(-2px)}
+.open-project:active{transform:translateY(0)}
+.project-note{max-width:min(440px,calc(100% - var(--preview-width) - 24px));font-size:11px;line-height:1.6;margin-top:14px;color:#c5d3cc}
+@keyframes work-change{from{opacity:0;transform:translateX(min(28px,2vw))}to{opacity:1;transform:translateX(0)}}
+
+/* Artwork controls stay separate from the external-site action. */
+.canvas-controls{position:absolute;right:0;bottom:7px;display:flex;gap:3px;padding:5px;border:1px solid #d6e9e33d;border-radius:99px;background:#07181e7a;backdrop-filter:blur(12px)}
+.scene-control{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;color:#d7e6df}
+.scene-control svg{width:17px;height:17px}
+.scene-control:hover,.scene-control[aria-expanded=true],.scene-control[aria-pressed=true]{background:#d0e6d926;color:#fff}
+.scene-settings{position:absolute;right:0;bottom:68px;z-index:5;width:288px;padding:22px;border:1px solid #b8dfcf52;border-radius:12px;background:#07191eeb;backdrop-filter:blur(22px);box-shadow:0 14px 45px #0005}
+.settings-head{display:flex;align-items:center;justify-content:space-between;font-size:17px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.settings-head button{font-size:26px;width:32px;height:32px}
+.scene-settings .background-state{margin-top:13px;color:var(--accent)}
+.scene-settings label{display:flex;justify-content:space-between;font-size:12px;margin:18px 0 9px}
+.scene-settings select{width:100%;background:#10282b;border:1px solid var(--line);border-radius:4px;padding:10px;color:var(--ink);font-size:12px}
+.scene-settings input{width:100%;accent-color:var(--accent)}
+.scene-settings p{font-size:11px;color:var(--muted);line-height:1.6;margin-top:20px}
+.scene-settings p a{text-decoration:underline;text-underline-offset:3px}
+
+/* A compact, tactile strip for choosing works. */
+.collection{flex-shrink:0;display:flex;align-items:center;gap:12px;width:100%;max-width:1200px;margin:0 auto;padding:15px 0 26px}
+.project-strip{display:flex;flex:1;min-width:0;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#a3cdbd55 transparent;pointer-events:auto;padding:6px;scroll-snap-type:x proximity}
+.slideshow-toggle{display:flex;flex-shrink:0;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:0 14px;border:1px solid #d6e9e357;border-radius:99px;background:#071a237a;backdrop-filter:blur(10px);font-size:11px;color:#d7e6df}
+.slideshow-toggle svg{width:16px;height:16px}
+.slideshow-toggle:hover,.slideshow-toggle[aria-pressed=true]{background:#d0e6d926;color:#fff}
+.project-card{display:flex;align-items:center;flex:1 0 0;min-width:0;gap:14px;min-height:78px;padding:8px;text-align:left;border:1px solid #cee8d930;border-radius:6px;background:#07171e73;backdrop-filter:blur(12px);transition:background .2s,border-color .2s,transform .2s;scroll-snap-align:start}
+.project-card img{width:84px;flex-shrink:0;aspect-ratio:1.6;height:auto;object-fit:cover;border-radius:2px;filter:saturate(.65) brightness(.72);transition:filter .2s}
+.card-meta{min-width:0}
+.card-title{display:block;font-size:12px;line-height:1.5;color:#cbd8d1;overflow-wrap:anywhere}
+.project-card[aria-pressed=true]{border-color:#ecf4e7ad;background:#c6e1ca1a}
+.project-card[aria-pressed=true] .card-title,.project-card:hover .card-title{color:#fff}
+.project-card[aria-pressed=true] img,.project-card:hover img{filter:saturate(1) brightness(1)}
+.project-card:hover{border-color:#e5f3e58c;background:#d1e8d923;transform:translateY(-2px)}
+.project-strip[data-count="2"],.project-strip[data-count="1"]{justify-content:center}
+.project-strip[data-count="2"] .project-card,.project-strip[data-count="1"] .project-card{max-width:300px}
+
+/* The index is a browsable overview, with the same English category names. */
+.site-menu{position:fixed;inset:0;margin:0 0 0 auto;width:min(800px,100%);height:100dvh;max-height:none;max-width:none;padding:42px 48px;background:#061719ef;color:var(--ink);border:0;border-left:1px solid #d0e7d73d;backdrop-filter:blur(24px);overflow-y:auto}
+.site-menu::backdrop{background:#0010156b;backdrop-filter:blur(8px)}
+.menu-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:35px}
+.menu-top h2{font-size:65px;font-weight:400;letter-spacing:-.065em;line-height:1}
+.menu-close{min-height:44px;min-width:84px;padding:0 20px;border:1px solid #d6e9e357;border-radius:99px;font-size:13px;background:#ffffff08}
+.menu-close:hover{background:#ffffff18}
+.site-menu nav{display:flex;flex-wrap:wrap;gap:10px}
+.site-menu nav>a{display:block;padding:13px 21px;border:1px solid var(--line);border-radius:99px}
+.site-menu nav strong{font-size:18px;font-weight:400}
+.site-menu nav>a:hover{background:var(--ink);color:#10241f}
+.menu-projects{margin-top:42px;display:grid;grid-template-columns:1fr 1fr;gap:28px 20px}
+.menu-project{display:block;text-align:left;min-width:0;padding:0}
+.menu-project img{display:block;width:100%;height:auto;aspect-ratio:1.6;object-fit:cover;border:1px solid var(--line);margin-bottom:14px}
+.menu-project span{font-size:14px;line-height:1.5}
+.menu-project:hover{color:var(--accent)}
+body.menu-open{overflow:hidden}
+.restore-ui{position:fixed;z-index:10;bottom:26px;right:4vw;border:1px solid #d1ecdb7a;border-radius:99px;padding:15px 24px;background:#051118a8;color:var(--ink);backdrop-filter:blur(12px);font-size:13px}
+body.immersed .interface{opacity:0;visibility:hidden}
+body.immersed .edge-shade{opacity:0}
+.noscript-note{position:fixed;z-index:20;inset:15% 10%;background:#071014;padding:30px;border:1px solid var(--accent);overflow:auto}
+.noscript-note a{display:block;margin-top:24px;color:var(--accent)}
+
+@media(min-width:1700px){
+  .site-header{height:118px}
+  .work-content{min-height:min(calc(100svh - 360px),790px)}
+  .project-info{margin-bottom:32px}
+  .collection{max-width:1330px}
+  .project-card{min-height:90px;gap:18px}
+  .project-card img{width:102px}
+  .card-title{font-size:13px}
+}
+@media(max-width:1100px){
+  .interface{padding:0 30px}
+  .brand{min-width:200px;gap:12px}
+  .brand h1{font-size:29px}
+  .brand-description{font-size:10px;max-width:90px}
+  .category-tabs button{padding:0 16px}
+  .site-header{gap:18px}
+  .project-title{font-size:65px;max-width:61%}
+  .project-title.japanese{font-size:56px}
+  .project-description{font-size:14px}
+  .project-card{gap:10px}
+  .project-card img{width:62px}
+  .card-title{font-size:11px}
+}
+@media(max-width:850px){
+  .site-header{height:100px}
+  .brand{display:block;min-width:160px}
+  .brand-description{display:block;max-width:none;margin-top:7px}
+  .brand h1{font-size:30px}
+  .category-tabs button{font-size:12px;padding:0 13px}
+  .menu-toggle{min-width:85px;padding:0 14px;gap:12px}
+  .gallery{padding:16px 0 77px}
+  .work-panel{max-width:670px}
+  .work-content{min-height:0;padding-top:0;display:flex;flex-direction:column}
+  .project-preview{position:relative;order:-1;width:100%;max-width:none}
+  .project-info{width:100%;padding:0 16px;margin-top:-27px;margin-bottom:0}
+  .project-title{font-size:59px;max-width:none}
+  .project-title.japanese{font-size:52px}
+  .project-title .title-line{display:inline}
+  .project-title .title-line+.title-line:before{content:' '}
+  .project-label{max-width:440px;margin-top:20px}
+  .project-description{font-size:15px}
+  .project-action-row{margin-top:20px}
+  .project-note{max-width:440px}
+  .canvas-controls{bottom:14px}
+  .collection{padding:9px 0 22px}
+  .project-card{flex:0 0 225px}
+  .slideshow-toggle{width:44px;padding:0}
+  .slideshow-toggle span{display:none}
+}
+@media(max-width:700px){
+  .interface{padding:0 20px}
+  .site-header{height:135px;position:relative;align-items:flex-start;padding-top:22px}
+  .brand h1{font-size:30px}
+  .brand-description{font-size:10px}
+  .category-tabs{position:absolute;bottom:3px;left:0;right:0;justify-content:space-between;padding:3px}
+  .category-tabs button{flex:1;min-height:34px;font-size:12px;padding:0 10px}
+  .menu-toggle{min-height:42px;font-size:12px}
+  .gallery{padding:25px 0 77px}
+  .project-info{padding:0 7px;margin-top:-19px}
+  .project-title{font-size:clamp(37px,10vw,59px);line-height:1.04;letter-spacing:-.055em}
+  .project-title.japanese{font-size:clamp(33px,9.2vw,50px);line-height:1.22}
+  .project-label{margin-top:18px;padding-top:13px}
+  .project-subtitle{font-size:11px}
+  .project-medium{font-size:10px}
+  .project-description{font-size:14px;line-height:1.9;margin-top:13px}
+  .project-action-row{margin-top:21px}
+  .open-project{min-height:46px;min-width:151px;font-size:12px;padding:0 23px}
+  .project-note{font-size:10px;margin-top:12px}
+  .canvas-controls{padding:4px;bottom:10px}
+  .scene-control{width:34px;height:34px}
+  .scene-control svg{width:16px;height:16px}
+  .scene-settings{bottom:64px;width:min(288px,100%)}
+  .collection{padding:10px 0 22px}
+  .project-strip{padding:5px 3px;gap:9px}
+  .project-card{flex:0 0 215px;min-height:70px;padding:8px;gap:12px}
+  .project-card img{width:72px}
+  .card-title{font-size:12px}
+  .site-menu{padding:30px 22px}
+  .menu-top{margin-bottom:27px}
+  .menu-top h2{font-size:53px}
+  .site-menu nav{gap:7px}
+  .site-menu nav>a{padding:11px 14px}
+  .site-menu nav strong{font-size:14px}
+  .menu-projects{margin-top:30px;gap:25px 13px}
+  .menu-project span{font-size:12px}
+  .menu-project img{margin-bottom:11px}
+}
+@media(max-width:360px){
+  .interface{padding:0 15px}
+  .brand h1{font-size:28px}
+  .brand-description{font-size:9px}
+  .project-info{padding:0 3px}
+  .project-title{font-size:34px}
+  .project-title.japanese{font-size:32px}
+  .project-description{font-size:13px}
+}
+@media(max-height:760px) and (min-width:851px){
+  .site-header{height:84px}
+  .gallery{padding-top:8px;padding-bottom:57px}
+  .work-content{--preview-width:min(62%,calc((100svh - 264px)*1.6));min-height:max(370px,calc(100svh - 260px))}
+  .project-info{margin-bottom:10px}
+  .project-title{font-size:clamp(52px,5.3vw,77px)}
+  .project-title.japanese{font-size:clamp(46px,4.5vw,65px)}
+  .project-label{margin-top:20px;padding-top:12px}
+  .project-description{font-size:14px;line-height:1.85;margin-top:12px}
+  .project-action-row{margin-top:18px}
+  .project-note{margin-top:10px;font-size:10px}
+  .collection{padding-top:5px;padding-bottom:15px}
+  .project-card{min-height:70px}
+  .project-card img{width:72px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}

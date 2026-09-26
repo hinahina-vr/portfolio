@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#04090b">
+  <meta name="description" content="Websites and interactive works by hinahina. Featuring GAIA SENSATION, GLSL Effects Showcase, 鉄道でつなぐ中国の街 and Quiz Pal.">
+  <meta name="author" content="hinahina">
+  <title>hinahina — Web &amp; interactive works</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div id="art-stage" class="art-stage" aria-label="インタラクティブな背景"><div id="background-root"></div><div class="art-fallback" aria-hidden="true"></div></div>
+  <div class="edge-shade" aria-hidden="true"></div>
+  <a class="skip-link" href="#work-panel">Skip to work</a>
+  <div class="interface" id="interface">
+    <header class="site-header">
+      <a class="brand" href="#works/web" aria-label="hinahina — ポートフォリオの最初の作品へ"><h1>hinahina</h1><span class="brand-description">Web &amp; interactive works</span></a>
+      <nav class="category-tabs" role="tablist" aria-label="作品カテゴリ">
+        <button role="tab" id="tab-web" aria-controls="work-panel" aria-selected="true" data-category="web">Web</button>
+        <button role="tab" id="tab-visual" aria-controls="work-panel" aria-selected="false" tabindex="-1" data-category="visual">Visual</button>
+        <button role="tab" id="tab-experiments" aria-controls="work-panel" aria-selected="false" tabindex="-1" data-category="experiments">Experiments</button>
+      </nav>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="site-menu"><span>Index</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 7h16M2 13h16" stroke="currentColor"/></svg></button>
+    </header>
+    <main id="works" class="gallery">
+      <section class="work-panel" id="work-panel" role="tabpanel" aria-labelledby="tab-web" tabindex="0"></section>
+      <div class="canvas-controls">
+        <button class="scene-control" id="settings-toggle" aria-expanded="false" aria-controls="scene-settings" aria-label="背景の設定"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14M7 2v6M13 7v6M8 12v6" stroke="currentColor"/></svg></button>
+        <button class="motion-toggle scene-control" aria-label="アニメーションを一時停止" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button class="immerse-toggle scene-control" aria-label="作品の操作画面を隠す" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" stroke="currentColor"/></svg></button>
+      </div>
+      <section id="scene-settings" class="scene-settings" aria-label="背景の設定" hidden>
+        <div class="settings-head"><span>Background</span><button id="settings-close" aria-label="背景の設定を閉じる">×</button></div>
+        <p class="background-state" id="art-state">Playing</p>
+        <label for="scene-select">Artwork</label>
+        <select id="scene-select"><option value="lilian-kaleido-loom">Lilian Kaleido Loom</option><option value="kelp-current">Botanical Tide</option><option value="fluid-chrome-stream">Gesture Cut Field</option></select>
+        <label for="intensity">Light <output id="intensity-value">1.20</output></label><input id="intensity" type="range" min="0.4" max="2.5" step="0.05" value="1.2">
+        <label for="motion">Motion <output id="motion-value">1.16</output></label><input id="motion" type="range" min="0.2" max="2" step="0.05" value="1.16">
+        <p>From <a href="https://glsl-effects-showcase.pages.dev/" target="_blank" rel="noopener noreferrer">GLSL Effects Showcase</a></p>
+      </section>
+    </main>
+    <section class="collection" aria-label="作品一覧"><div id="project-strip" class="project-strip"></div><button id="slideshow-toggle" class="slideshow-toggle" aria-label="Pause slideshow" title="Pause slideshow" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg><span>Pause slideshow</span></button></section>
+  </div>
+  <button class="restore-ui" hidden>Back to works</button>
+  <dialog id="site-menu" class="site-menu" aria-labelledby="menu-title">
+    <div class="menu-top"><h2 id="menu-title">Index</h2><button class="menu-close" aria-label="メニューを閉じる">Close</button></div>
+    <nav aria-label="カテゴリメニュー">
+      <a href="#works/web" data-menu-category="web"><strong>Web</strong></a>
+      <a href="#works/visual" data-menu-category="visual"><strong>Visual</strong></a>
+      <a href="#works/experiments" data-menu-category="experiments"><strong>Experiments</strong></a>
+    </nav>
+    <div class="menu-projects" id="menu-projects"></div>
+  </dialog>
+  <noscript><div class="noscript-note"><p>hinahina — Web &amp; interactive works</p><a href="https://gaia-senseware.pages.dev/">惑星の放課後</a><a href="https://glsl-effects-showcase.pages.dev/">GLSL Effects Showcase</a><a href="https://chinameng.pages.dev/">鉄道でつなぐ中国の街</a><a href="https://hinahina-vr.github.io/quiz-pal/">Quiz Pal</a></div></noscript>
+</body>
+</html>
