@@ -151,7 +151,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
         sheet.curl.value=twist*30.6;
         sheet.gather.value=elapsed<2400?1-Math.pow(1-Math.min(1,elapsed/450),3):Math.pow(1-release,2.4);
         sheet.blend.value=smooth(release/.85);
-        sheet.bleach.value=smooth((elapsed-2200)/190);
+        sheet.bleach.value=.92*smooth(elapsed/2200)+.08*smooth((elapsed-2200)/190);
         sheet.time.value=now/1000;
         const source=previousRect||targetRect;
         liquidSurface().setWring({rect:{x:source.x,width:source.width,bottom:source.y+source.height*(1.-sheet.gather.value*.40),height:source.height},pressure:twist,blend:sheet.blend.value,emitters:sheetDrainage(source,sheet.gather.value,sheet.curl.value)});
