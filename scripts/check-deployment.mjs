@@ -31,7 +31,9 @@ try{
       await expect(page.locator('.project-description')).toHaveText(project.description);
       await expect(page.locator('.open-project')).toHaveAttribute('href',project.url);
       await expect(page.locator('.preview-link')).toHaveAttribute('href',project.url);
-      await expect.poll(()=>page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===1440)).toBe(true);
+      await expect(page.locator('.preview-image')).toHaveAttribute('src',project.image);
+      const sourceWidth=category==='visual'?848:1440;
+      await expect.poll(()=>page.locator('.preview-image').evaluate((img,width)=>img.complete&&img.naturalWidth===width,sourceWidth)).toBe(true);
     }
   }
   await expect(page.locator('#slideshow-toggle')).toBeHidden();
