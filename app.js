@@ -1,9 +1,14 @@
 import {categories} from './content.js';
 import {mountBackground} from './src/Background.jsx';
+import {transitionPanel} from './src/PanelTransition.js';
+import {captureTitle} from './src/MotionType.js';
 
 const $=selector=>document.querySelector(selector);
 const panel=$('#work-panel'),strip=$('#project-strip');
 const tabs=[...document.querySelectorAll('[role=tab]')];
+const tabRail=$('.category-tabs');
+function positionTabSurface(){const active=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');if(active){tabRail.style.setProperty('--tab-x',`${active.offsetLeft}px`);tabRail.style.setProperty('--tab-width',`${active.offsetWidth}px`);}}
+new ResizeObserver(positionTabSurface).observe(tabRail);
 const menu=$('#site-menu');
 const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeUrl=value=>{try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)?url.href:'#works/web';}catch{return '#works/web';}};
@@ -12,8 +17,9 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let paused=reduced.matches;
 try{paused ||= localStorage.getItem('portfolio-motion')==='paused';}catch{}
 const slideshowInterval=8000;
-let slideshowPaused=reduced.matches,slideshowTimer,slideshowExit;
-function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;const exit=slideshowExit;slideshowExit=undefined;exit?.cancel();}
+let slideshowPaused=reduced.matches,slideshowTimer;
+let disposeTransition=()=>{};
+function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;}
 function slideshowHeld(){return document.hidden||menu.open||!$('#scene-settings').hidden||immersed;}
 function syncSlideshow(){
   cancelSlideshow();
@@ -32,10 +38,7 @@ function advanceSlideshow(){
     const selected=strip.querySelector('[aria-pressed=true]');
     if(selected){const left=selected.offsetLeft-strip.offsetLeft;strip.scrollTo({left:Math.max(0,left-(strip.clientWidth-selected.offsetWidth)/2),behavior:reduced.matches?'instant':'smooth'});}
   };
-  if(reduced.matches)return change();
-  const exit=panel.animate([{opacity:1,transform:'translateX(0)'},{opacity:0,transform:'translateX(-2vw)'}],{duration:240,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'});
-  slideshowExit=exit;
-  exit.finished.then(()=>{if(slideshowExit!==exit)return;slideshowExit=undefined;exit.cancel();change();}).catch(()=>{});
+  change();
 }
 const art=mountBackground($('#background-root'),state=>{
   if(state.available!==undefined){available=state.available;$('#art-stage').dataset.ready=String(state.ready||false);$('#art-stage').dataset.scene=state.scene||'';$('#art-state').textContent=available?(paused?'Paused':'Playing'):'Still';$('.motion-toggle').hidden=!available;$('#settings-toggle').hidden=!available;}
@@ -43,11 +46,17 @@ const art=mountBackground($('#background-root'),state=>{
 function setScene(id){const scene=art.setScene(id);if(!scene)return;$('#scene-select').value=id;document.documentElement.style.setProperty('--accent',scene.accent);for(const key of ['intensity','motion']){$(`#${key}`).value=scene.values[key];$(`#${key}-value`).textContent=Number(scene.values[key]).toFixed(2);}}
 function render(nextCategory='web',id,updateHistory=false){
   cancelSlideshow();
+  disposeTransition();
+  const previous=panel.querySelector('.preview-image');
+  const previousRect=previous?.getBoundingClientRect();
+  const previousTitle=captureTitle(panel.querySelector('.project-title'));
+  const previousId=panel.dataset.project;
   if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
   category=nextCategory;
   const data=categories[category];
   const project=data.projects.find(project=>project.id===id)||data.projects[0];
   tabs.forEach(tab=>{const active=tab.dataset.category===category;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
+  positionTabSurface();
   panel.setAttribute('aria-labelledby',`tab-${category}`);panel.dataset.project=project.id;
   panel.innerHTML=`<article class="work-content">
     <div class="project-info">
@@ -64,6 +73,7 @@ function render(nextCategory='web',id,updateHistory=false){
       <a class="preview-link" href="${escapeHtml(safeUrl(project.url))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(project.title)}のプレビューからサイトを開く（新しいタブ）"><span class="preview-surface"><img class="preview-image" src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}の実際の画面" width="1440" height="900" fetchpriority="high"></span></a>
     </figure>
   </article>`;
+  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle);
   strip.dataset.count=String(data.projects.length);
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}の実際の画面" width="1440" height="900"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   setScene(project.scene);
