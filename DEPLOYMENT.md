@@ -2,7 +2,7 @@
 
 - Repository: https://github.com/hinahina-vr/portfolio
 - Site: https://hinahina-vr.github.io/portfolio/
-- Application version: 2.4.0
+- Application version: 2.5.0
 - Publishing branch: main
 - Build: Node.js 22, npm ci, npm run build
 - Verification gate: npm test against built dist in Chromium
@@ -34,8 +34,14 @@ Removed the slideshow pause/play button while preserving automatic transitions. 
 
 The actual public site passed 5 browser checks, including the absent button, timed autoplay, all project previews and links, mobile layout, and matching build metadata. Desktop and mobile public captures were visually inspected. Evidence: `qa/deployment/public-results.json` and `qa/deployment/public-*.png`; dedicated real-time regressions: `qa/v2.3.3/slideshow-results.json` (5 PASS). The previous public verification is archived in `qa/v2.3.2/deployment/`.
 
-## Current publication — v2.4.0 / 2026-09-26
+## Previous publication — v2.4.0 / 2026-09-26
 
 Rebalanced the exhibition layout: artwork left, caption right, shared header/gallery/footer alignment, and a sequential mobile layout. Published application commit: `87da51cfa9a6a111bf94cf7fa226724883620580`. [Build, all 17 browser checks and deployment passed](https://github.com/hinahina-vr/portfolio/actions/runs/36239982773).
 
 The final local build passed 63 layout checks, 14 caption checks and 5 real-time slideshow checks. The actual public site passed all 5 deployment checks, including real timed autoplay and matching release metadata. Public desktop and mobile screenshots were visually reviewed. Evidence: `qa/v2.4.0/`, `qa/deployment/public-results.json` and `qa/deployment/public-*.png`. Previous deployment evidence is archived in `qa/v2.3.3/deployment/`. Device/browser limitations remain as described above.
+
+## Current publication — v2.5.0 / 2026-09-26
+
+Full-viewport motion typography with flexible image sheets and synchronized UI motion. Resting images are opaque and framed; menus, tabs and buttons share elastic interaction feedback. Published app commit: `a9dc1119ca9676ebb31e2636e274bc579b02caf9`. [Build, 17 browser checks and deployment succeeded](https://github.com/hinahina-vr/portfolio/actions/runs/36241638014).
+
+Local Chrome passed the existing 17 checks, 6 dedicated transition checks and real-time autoplay recording. Public Chrome passed 5 deployment checks and all 6 dedicated transition checks. Public captures were visually inspected. Evidence: `qa/v2.5.0/` and `qa/deployment/`. The deployed version and commit match build.json. Mobile remains viewport emulation; physical-device smoothness, Safari and Firefox are unverified.
