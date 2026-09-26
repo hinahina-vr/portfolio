@@ -13,3 +13,5 @@ Portfolio v2.1 adds a pause guard to the copied `ShaderCanvas.tsx`: the original
 Active effects: `lilian-kaleido-loom`, `kelp-current`, `fluid-chrome-stream`.
 
 `FluidFxCanvas.tsx` uses Three.js and three-fluid-fx (MIT). Dependency versions and licenses are tracked in the lockfile and `public/licenses/`.
+
+Portfolio v2.5.6 emits a portfolio:water-frame event immediately after the WebGL background draw in FluidFxCanvas.tsx and ShaderCanvas.tsx. LiquidSurface copies that live frame for water refraction before the drawing buffer is discarded. Original effect shaders remain unchanged. The new overlay owns a three-fluid-fx FluidSimulation, samples its density and velocity, and adds a gravity/meniscus surface shader; it is not a 3D free-surface fluid solver.

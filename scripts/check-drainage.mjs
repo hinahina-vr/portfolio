@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {sheetDrainage} from '../src/Drainage.js';
+const rect={x:72,y:180,width:792,height:495};
+const flat=sheetDrainage(rect,0,0),twisted=sheetDrainage(rect,1,30.6);
+assert(flat.every(p=>Math.abs(p.y-675)<.001));
+assert.equal(flat.reduce((s,p)=>s+p.flux,0),49*25);
+assert.equal(twisted.reduce((s,p)=>s+p.flux,0),49*25);
+assert(Math.max(...twisted.map(p=>p.y))-Math.min(...twisted.filter(p=>p.flux).map(p=>p.y))>1);
+assert(twisted.some(p=>p.v>.05&&p.v<.95));
+assert(twisted.every(p=>p.weight>=0&&p.weight<=1));
+console.log('PASS: flat lower edge, conserved catchment, twisted interior-fold outlets, nonuniform elevations');

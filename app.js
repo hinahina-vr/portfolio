@@ -2,6 +2,8 @@ import {categories} from './content.js';
 import {mountBackground} from './src/Background.jsx';
 import {transitionPanel} from './src/PanelTransition.js';
 import {captureTitle} from './src/MotionType.js';
+import {liquidSurface} from './src/LiquidSurface.js';
+import {enterSite} from './src/Entrance.js';
 
 const $=selector=>document.querySelector(selector);
 const panel=$('#work-panel'),strip=$('#project-strip');
@@ -9,7 +11,6 @@ const tabs=[...document.querySelectorAll('[role=tab]')];
 const tabRail=$('.category-tabs');
 function positionTabSurface(){const active=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');if(active){tabRail.style.setProperty('--tab-x',`${active.offsetLeft}px`);tabRail.style.setProperty('--tab-width',`${active.offsetWidth}px`);}}
 new ResizeObserver(positionTabSurface).observe(tabRail);
-const menu=$('#site-menu');
 const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeUrl=value=>{try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)?url.href:'#works/web';}catch{return '#works/web';}};
 let category='web',immersed=false,available=true;
@@ -19,8 +20,9 @@ try{paused ||= localStorage.getItem('portfolio-motion')==='paused';}catch{}
 const slideshowInterval=8000;
 let slideshowPaused=reduced.matches,slideshowTimer;
 let disposeTransition=()=>{};
+let disposeEntrance=()=>{};
 function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;}
-function slideshowHeld(){return document.hidden||menu.open||!$('#scene-settings').hidden||immersed;}
+function slideshowHeld(){return document.hidden||!$('#scene-settings').hidden||immersed;}
 function syncSlideshow(){
   cancelSlideshow();
   if(!slideshowPaused&&categories[category].projects.length>1&&!slideshowHeld())slideshowTimer=setTimeout(advanceSlideshow,slideshowInterval);
@@ -45,6 +47,7 @@ const art=mountBackground($('#background-root'),state=>{
 });
 function setScene(id){const scene=art.setScene(id);if(!scene)return;$('#scene-select').value=id;document.documentElement.style.setProperty('--accent',scene.accent);for(const key of ['intensity','motion']){$(`#${key}`).value=scene.values[key];$(`#${key}-value`).textContent=Number(scene.values[key]).toFixed(2);}}
 function render(nextCategory='web',id,updateHistory=false){
+  disposeEntrance();
   cancelSlideshow();
   disposeTransition();
   const previous=panel.querySelector('.preview-image');
@@ -73,6 +76,7 @@ function render(nextCategory='web',id,updateHistory=false){
       <a class="preview-link" href="${escapeHtml(safeUrl(project.url))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(project.title)}のプレビューからサイトを開く（新しいタブ）"><span class="preview-surface"><img class="preview-image" src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}の実際の画面" width="1440" height="900" fetchpriority="high"></span></a>
     </figure>
   </article>`;
+  liquidSurface().setSurface(panel.querySelector('.preview-surface'));
   disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle);
   strip.dataset.count=String(data.projects.length);
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}の実際の画面" width="1440" height="900"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
@@ -85,11 +89,7 @@ strip.addEventListener('click',event=>{const button=event.target.closest('[data-
 function syncHash(){const [,cat,id]=location.hash.match(/^#works\/([^/]+)(?:\/([^/]+))?$/)||[];render(cat||'web',id);}
 window.addEventListener('hashchange',syncHash);
 tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>render(tab.dataset.category,undefined,true));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;if(event.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=tabs.length-1;if(next!==undefined){event.preventDefault();tabs[next].focus();render(tabs[next].dataset.category,undefined,true);}});});
-$('.menu-toggle').addEventListener('click',()=>{menu.showModal();document.body.classList.add('menu-open');$('.menu-toggle').setAttribute('aria-expanded','true');syncSlideshow();});$('.menu-close').addEventListener('click',()=>menu.close());menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');$('.menu-toggle').setAttribute('aria-expanded','false');syncSlideshow();});
-document.querySelectorAll('[data-menu-category]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();render(link.dataset.menuCategory,undefined,true);menu.close();$(`#tab-${category}`).focus();}));
-$('#menu-projects').innerHTML=categories.web.projects.map(project=>`<button class="menu-project" data-menu-project="${project.id}"><img src="${escapeHtml(project.image)}" alt="" width="1440" height="900"><span>${escapeHtml(project.title)}</span></button>`).join('');
-$('#menu-projects').addEventListener('click',event=>{const button=event.target.closest('[data-menu-project]');if(!button)return;render('web',button.dataset.menuProject,true);menu.close();panel.focus({preventScroll:true});});
-function updateMotion(){art.setPaused(paused);$('.motion-toggle').setAttribute('aria-pressed',String(paused));$('.motion-toggle').setAttribute('aria-label',paused?'アニメーションを再生':'アニメーションを一時停止');$('.motion-toggle').innerHTML=paused?'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 5 8 5-8 5Z" fill="currentColor"/></svg>':'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg>';$('#art-state').textContent=available?(paused?'Paused':'Playing'):'Still';}
+function updateMotion(){art.setPaused(paused);liquidSurface().setPaused(paused);$('.motion-toggle').setAttribute('aria-pressed',String(paused));$('.motion-toggle').setAttribute('aria-label',paused?'アニメーションを再生':'アニメーションを一時停止');$('.motion-toggle').innerHTML=paused?'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 5 8 5-8 5Z" fill="currentColor"/></svg>':'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10" stroke="currentColor" stroke-width="1.5"/></svg>';$('#art-state').textContent=available?(paused?'Paused':'Playing'):'Still';}
 $('.motion-toggle').addEventListener('click',()=>{paused=!paused;try{localStorage.setItem('portfolio-motion',paused?'paused':'playing');}catch{}updateMotion();});reduced.addEventListener('change',event=>{paused=event.matches;updateMotion();});
 function immerse(value){immersed=value;document.body.classList.toggle('immersed',value);$('#interface').inert=value;$('.restore-ui').hidden=!value;$('.immerse-toggle').setAttribute('aria-pressed',String(value));if(value){$('#scene-settings').hidden=true;$('#settings-toggle').setAttribute('aria-expanded','false');$('.restore-ui').focus({preventScroll:true});}else $('.immerse-toggle').focus({preventScroll:true});syncSlideshow();}
 $('.immerse-toggle').addEventListener('click',()=>immerse(true));$('.restore-ui').addEventListener('click',()=>immerse(false));
@@ -102,3 +102,4 @@ document.addEventListener('visibilitychange',syncSlideshow);
 reduced.addEventListener('change',event=>{slideshowPaused=event.matches;syncSlideshow();});
 new MutationObserver(reflectPaused).observe($('.motion-toggle'),{attributes:true,attributeFilter:['aria-pressed']});
 syncHash();updateMotion();reflectPaused();
+disposeEntrance=enterSite(reduced);

@@ -1,47 +1,69 @@
+import {sheetDrainage} from './Drainage.js';
+import {liquidSurface} from './LiquidSurface.js';
+const motionDuration=3200;
 import * as THREE from 'three';
+import {wetGlassGLSL} from './WetGlass.js';
 import {motionType} from './MotionType.js';
 
-// One viewport-sized GPU surface: the sheets leave their layout slots and
-// sweep across the whole screen before settling into the opaque resting frame.
+// One image surface; persistent fluid runoff is coordinated by LiquidSurface.
 let renderer;
 const vertexShader = `
   uniform float curl;
-  uniform float time;
-  uniform float layer;
+  uniform float gather;
+
+
   uniform vec2 size;
   uniform vec2 center;
-  uniform float rotation;
+
   varying vec2 imageUv;
-  varying float light;
+  varying vec3 surfacePosition;
   void main() {
     imageUv = uv;
-    float angle = (uv.x - .5) * curl;
-    float radius = 2.0 / max(abs(curl), .001);
-    float x = abs(curl) < .001 ? position.x : sin(angle) * radius;
-    float z = (1.0 - cos(angle)) * radius;
-    float flex = sin(uv.x * 7.0 - time * 8.0) * sin(uv.y * 3.14159);
-    float strength = min(abs(curl), 1.0);
-    float y = position.y * (1.0 - strength * .09) + flex * strength * .075;
-    x += sin(uv.y * 4.0 + time * 5.0) * strength * .035;
-    float perspective = 1.0 / (1.0 + z * .22);
-    light = .56 + .44 * abs(cos(angle));
-    vec2 p = vec2(x, y) * perspective * size;
-    p = mat2(cos(rotation), sin(rotation), -sin(rotation), cos(rotation)) * p;
-    gl_Position = vec4(p + center, -.2 * z + layer, 1.0);
+    // Gather the width into longitudinal folds before applying opposing torsion.
+    // End separation decreases as the cloth becomes a compact bundle.
+    float strength=clamp(abs(curl)/30.6,0.,1.);
+    float fold=position.y*7.2;
+    float crossY=mix(position.y,.14*sin(fold)+position.y*.035,gather);
+    float crossZ=gather*(.115*cos(fold)+.026*sin(position.y*19.));
+    float compression=(1.-strength*.30*(1.-position.x*position.x))*(1.-strength*.80);
+    float angle=position.x*curl*.5;
+    float y=(crossY*cos(angle)-crossZ*sin(angle))*compression;
+    float z=(crossY*sin(angle)+crossZ*cos(angle))*compression;
+    float x=position.x*(1.-gather*.16);
+    y-=gather*(1.-strength)*.07*(1.-position.x*position.x);
+    surfacePosition=vec3(x,y,z);
+    float perspective=1./(1.+z*.22);
+    vec2 p=vec2(x,y)*perspective*size+center;
+    gl_Position=vec4(p,-z*.15,1.);
   }
 `;
 const fragmentShader = `
   uniform sampler2D picture;
   uniform vec2 crop;
-  uniform float opacity;
+  uniform sampler2D nextPicture;
+  uniform vec2 nextCrop;
+  uniform float blend;
+  uniform float bleach;
+  uniform float time;
+  uniform float gather;
+
   varying vec2 imageUv;
-  varying float light;
+  varying vec3 surfacePosition;
+  ${wetGlassGLSL}
   void main() {
-    vec2 uv = (imageUv - .5) * crop + .5;
-    vec3 color = texture2D(picture, uv).rgb;
-    // Grazing light makes the curved display read as a surface, not a dissolve.
-    color = color * light + vec3(.065, .085, .09) * pow(1.0 - light, 2.0);
-    gl_FragColor = vec4(color, opacity);
+    vec3 wet=wetGlass(imageUv,time);
+    vec2 wetUv=imageUv+wet.xy*.014;
+    vec2 uv = (wetUv - .5) * crop + .5;
+    vec2 nextUv = (wetUv - .5) * nextCrop + .5;
+    vec3 drained=mix(texture2D(picture,uv).rgb,vec3(1.),bleach);
+    vec3 color=mix(drained,texture2D(nextPicture,nextUv).rgb,blend);
+    vec3 normal=normalize(cross(dFdx(surfacePosition),dFdy(surfacePosition)));
+    if(!gl_FrontFacing)normal=-normal;
+    float lambert=abs(dot(normal,normalize(vec3(-.25,.65,1.))));
+    float shade=.56+.44*lambert;
+    color*=mix(1.,shade,gather);
+    color+=vec3(.14,.18,.20)*wet.z*(1.-bleach);
+    gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -56,6 +78,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
   surface.append(outgoing);
   let frame, stopped = false, meshes = [], animations = [];
   let cleanType=()=>{};
+
   const clean = () => {
     if (stopped) return;
     stopped = true;
@@ -65,10 +88,12 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
     animations.forEach(animation=>animation.cancel());
     cleanType();
     outgoing.remove();
+    liquidSurface().setWring(null);
     renderer?.domElement.remove();
     for (const mesh of meshes) {
       mesh.geometry.dispose();
       mesh.material.uniforms.picture.value.dispose();
+      mesh.material.uniforms.nextPicture.value.dispose();
       mesh.material.dispose();
     }
     delete surface.dataset.transition;
@@ -89,22 +114,15 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       renderer.domElement.setAttribute('aria-hidden', 'true');
       const scene = new THREE.Scene();
       const camera = new THREE.Camera();
-      const sheet = (img, layer) => {
-        const texture = new THREE.Texture(img);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.needsUpdate = true;
-        const ratio = img.naturalWidth / img.naturalHeight / 1.6;
-        const material = new THREE.ShaderMaterial({
-          vertexShader, fragmentShader, transparent:true, side:THREE.DoubleSide,
-          depthTest:false, depthWrite:false,
-          uniforms:{picture:{value:texture},crop:{value:new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio))},curl:{value:0},time:{value:0},layer:{value:layer},opacity:{value:1},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()},rotation:{value:0}}
-        });
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2,2,128,32),material);
-        meshes.push(mesh);
-        scene.add(mesh);
-        return material.uniforms;
-      };
-      const next = sheet(incoming, .1), old = sheet(previous, 0);
+      const textureFor=img=>{const texture=new THREE.Texture(img);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;return texture;};
+      const cropFor=img=>{const ratio=img.naturalWidth/img.naturalHeight/1.6;return new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio));};
+      const material=new THREE.ShaderMaterial({
+        vertexShader,fragmentShader,side:THREE.DoubleSide,depthTest:true,depthWrite:true,
+        uniforms:{picture:{value:textureFor(previous)},nextPicture:{value:textureFor(incoming)},crop:{value:cropFor(previous)},nextCrop:{value:cropFor(incoming)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}
+      });
+      const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,160,80),material);
+      meshes.push(mesh);scene.add(mesh);
+      const sheet=material.uniforms;
       document.body.append(renderer.domElement);
       const targetRect=incoming.getBoundingClientRect();
       const placement=rect=>({x:(rect.x+rect.width/2)/innerWidth*2-1,y:1-(rect.y+rect.height/2)/innerHeight*2,w:rect.width/innerWidth,h:rect.height/innerHeight});
@@ -113,31 +131,35 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       surface.style.visibility = 'hidden';
       outgoing.remove();
       surface.dataset.transition = 'rolling';
-      const start = performance.now();
+      renderer.compile(scene,camera);
+      let start,hasPresented=false;
       cleanType=motionType(previousTitle,document.querySelector('.project-title'));
       const smooth = t => {t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
-      const animate=(selector,keyframes)=>{const element=document.querySelector(selector);if(element)animations.push(element.animate(keyframes,{duration:1800,easing:'cubic-bezier(.22,.72,.2,1)',fill:'both'}));};
-      animate('.site-header',[{transform:'none'},{transform:'perspective(1000px) translateY(-9vh) rotateX(38deg) scaleX(.88)',offset:.35},{transform:'perspective(1000px) translateY(4px) rotateX(-3deg)',offset:.8},{transform:'none'}]);
-      animate('.collection',[{transform:'none'},{transform:'perspective(1000px) translateY(12vh) rotateX(-32deg) scaleX(.85)',offset:.35},{transform:'perspective(1000px) translateY(-5px) rotateX(3deg)',offset:.8},{transform:'none'}]);
-      animate('.project-info',[{opacity:0,transform:'perspective(1000px) translateX(40vw) rotateY(-65deg) scaleX(.6)'},{opacity:0,transform:'perspective(1000px) translateX(25vw) rotateY(-45deg)',offset:.35},{opacity:1,transform:'perspective(1000px) translateX(-8px) rotateY(3deg)',offset:.85},{opacity:1,transform:'none'}]);
-      animate('.art-stage',[{transform:'none'},{transform:'scale(1.14) skewY(-2deg)',offset:.45},{transform:'none'}]);
+      const animate=(selector,keyframes)=>{const element=document.querySelector(selector);if(element)animations.push(element.animate(keyframes,{duration:1000,easing:'cubic-bezier(.22,.72,.2,1)',fill:'both'}));};
+      for(const selector of ['.project-label','.project-action-row','.project-note'])animate(selector,[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}]);
       const tick = now => {
         if (stopped) return;
-        const t = Math.min(1, (now - start) / 1800);
-        const depart=smooth(t/.68),arrive=smooth((t-.2)/.8);
-        old.curl.value = depart * 5.8;
-        next.curl.value = (1-arrive) * -5.8;
-        old.opacity.value = 1-smooth((t-.52)/.16);
-        next.opacity.value = smooth((t-.18)/.12);
-        old.size.value.set(origin.w*(1+Math.sin(depart*Math.PI)*1.1),origin.h*(1+Math.sin(depart*Math.PI)*1.1));
-        old.center.value.set(origin.x-depart*2.8,origin.y+Math.sin(depart*Math.PI)*.55);
-        old.rotation.value=depart*.5;
-        const swell=Math.sin(arrive*Math.PI)*.8;
-        next.size.value.set(target.w*(1+swell),target.h*(1+swell));
-        next.center.value.set(target.x+(1-arrive)*2.8,target.y-Math.sin(arrive*Math.PI)*.35);
-        next.rotation.value=-(1-arrive)*.48;
-        old.time.value = next.time.value = t;
+        start ??= now;
+        const t = Math.min(1, (now - start) / motionDuration);
+        // Tighten the old image first. Crossfade its pixels on the same
+        // surface while the twist releases, never as a second silhouette.
+        const elapsed=now-start;
+        const release=Math.min(1,Math.max(0,(elapsed-2400)/800));
+        // A sustained pull: load the sheet, bear down, hold, then release.
+        const twist=elapsed<1900?1-Math.pow(1-elapsed/1900,4):
+          elapsed<2400?1:Math.pow(1-release,3.4);
+        sheet.curl.value=twist*30.6;
+        sheet.gather.value=elapsed<2400?1-Math.pow(1-Math.min(1,elapsed/450),3):Math.pow(1-release,2.4);
+        sheet.blend.value=smooth(release/.85);
+        sheet.bleach.value=smooth((elapsed-2200)/190);
+        sheet.time.value=now/1000;
+        const source=previousRect||targetRect;
+        liquidSurface().setWring({rect:{x:source.x,width:source.width,bottom:source.y+source.height*(1.-sheet.gather.value*.40),height:source.height},pressure:twist,blend:sheet.blend.value,emitters:sheetDrainage(source,sheet.gather.value,sheet.curl.value)});
+        const placementMix=smooth(release);
+        sheet.size.value.set(THREE.MathUtils.lerp(origin.w,target.w,placementMix),THREE.MathUtils.lerp(origin.h,target.h,placementMix));
+        sheet.center.value.set(THREE.MathUtils.lerp(origin.x,target.x,placementMix),THREE.MathUtils.lerp(origin.y,target.y,placementMix));
         renderer.render(scene, camera);
+        if(!hasPresented){start=performance.now();hasPresented=true;}
         if (t < 1) frame = requestAnimationFrame(tick);
         else clean();
       };

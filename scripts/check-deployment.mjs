@@ -46,8 +46,8 @@ try{
   await expect(popup.getByRole('heading',{name:'神話製作機械',exact:true})).toBeInViewport();
   await popup.close();
   pass('All seven public images and Japanese captions load; new concept link opens its actual section and selection survives reload');
-  await page.locator('.menu-toggle').click();
-  await page.locator('[data-menu-category="web"]').click();
+  await expect(page.locator('.menu-toggle,#site-menu')).toHaveCount(0);
+  await page.locator('#tab-web').click();
   await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
   await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished)));
   await page.screenshot({path:`${output}/public-desktop.png`,fullPage:true});
@@ -58,7 +58,7 @@ try{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(page.locator('.open-project')).toBeVisible();
   await page.screenshot({path:`${output}/public-experiment-mobile.png`,fullPage:true});
-  pass('Index navigation and mobile layout work at the public subpath');
+  pass('Category navigation without Index and mobile layout work at the public subpath');
   const build=await page.request.get(new URL('build.json',target).href,{headers:{'Cache-Control':'no-cache'}});
   expect(build.ok()).toBe(true);revision=await build.json();expect(revision.version).toBe(version);
   if(process.env.EXPECTED_DEPLOY_COMMIT)expect(revision.commit).toBe(process.env.EXPECTED_DEPLOY_COMMIT);

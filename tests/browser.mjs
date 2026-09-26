@@ -1,4 +1,5 @@
-import {chromium,expect} from '@playwright/test';
+import {chromium,expect as baseExpect} from '@playwright/test';
+const expect=baseExpect.configure({timeout:10000});
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -9,7 +10,7 @@ const {PNG}=require('../node_modules/playwright-core/lib/utilsBundle.js');
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
-await mkdir('qa/v2.5.0',{recursive:true});
+await mkdir('qa/v2.5.13',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
@@ -17,7 +18,7 @@ const record=(name,details='')=>{results.push({name,status:'PASS',details});cons
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
 function pixelDifference(a,b){const left=PNG.sync.read(a),right=PNG.sync.read(b);expect(left.width).toBe(right.width);expect(left.height).toBe(right.height);let max=0,changed=0;for(let i=0;i<left.data.length;i++){const delta=Math.abs(left.data[i]-right.data[i]);max=Math.max(max,delta);if(delta>2)changed++;}return{max,changed};}
 const artImage=()=>page.screenshot({clip:{x:650,y:170,width:650,height:380}});
-const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.5.0/${name}.png`,fullPage:true});};
+const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.5.13/${name}.png`,fullPage:true});};
 page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('response',response=>{if(response.url().startsWith(url)&&response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
@@ -31,11 +32,12 @@ try{
   await expect(page.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');
   await page.locator('.motion-toggle').click();
   await expect(page.locator('.site-header h1')).toHaveText('hinahina');
+  await page.evaluate(()=>document.fonts.ready);
+  expect(await page.evaluate(()=>document.fonts.check('400 16px "Portfolio Grotesk"')&&document.fonts.check('700 16px "Portfolio Grotesk"'))).toBe(true);
   await expect(page.locator('.gallery h1,.portfolio-intro')).toHaveCount(0);
   await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Experiments']);
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('惑星の放課後');
   await expect(page.locator('.project-card').first()).toHaveAttribute('data-project','gaia-senseware');
-  await expect(page.locator('.menu-project').first()).toHaveAttribute('data-menu-project','gaia-senseware');
   await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.jpg');
   expect(await page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===1440)).toBe(true);
   const previewBox=await page.locator('.preview-image').boundingBox();
@@ -49,7 +51,7 @@ try{
   expect(box).toMatchObject({x:0,y:0,width:1440,height:900});
   expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth>500))).toBe(true);
   await screenshot('desktop-idle');
-  record('Exhibition layout: hinahina identity, Gaia first, opaque framed preview, full-screen shader and all four work buttons fit desktop');
+  record('Exhibition layout: hinahina identity, Gaia first, opaque borderless preview, full-screen shader and all four work buttons fit desktop');
 
   await page.locator('.immerse-toggle').click();await page.waitForTimeout(500);
   const before=hash(await artImage());
@@ -123,11 +125,9 @@ try{
   await page.keyboard.press('ArrowRight');await expect(page.locator('#tab-visual')).toHaveAttribute('aria-selected','true');
   record('All categories, keyboard navigation, and original shader switching');
 
-  await page.locator('.menu-toggle').click();await expect(page.getByRole('dialog')).toBeVisible();
-  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).not.toBeVisible();await expect(page.locator('.menu-toggle')).toBeFocused();
-  await page.locator('.menu-toggle').click();await page.locator('[data-menu-category="experiments"]').click();await expect(page.locator('#tab-experiments')).toBeFocused();
-  await page.locator('.menu-toggle').click();await page.locator('[data-menu-project="quiz-pal"]').click();await expect(page.locator('#work-panel')).toHaveAttribute('data-project','quiz-pal');
-  record('Index menu, Escape focus restoration, category and individual project navigation');
+  await expect(page.locator('.menu-toggle,#site-menu')).toHaveCount(0);
+  await page.locator('#tab-web').click();
+  record('Index removed; category tabs retain direct navigation');
 
   await page.locator('#settings-toggle').click();await expect(page.locator('#scene-settings')).toBeVisible();
   for(const scene of ['kelp-current','fluid-chrome-stream','lilian-kaleido-loom']){await page.locator('#scene-select').selectOption(scene);await ready(scene);}
@@ -177,7 +177,7 @@ try{
       }
     }
     await page.locator('#tab-web').click();await ready();await screenshot(`viewport-${viewport.width}`);
-    if(viewport.width===390){await page.locator('.menu-toggle').click();await screenshot('mobile-menu');await page.locator('[data-menu-project="gaia-senseware"]').click();await ready('kelp-current');await screenshot('mobile-gaia');}
+    if(viewport.width===390){await page.locator('#tab-web').click();await page.locator('[data-project="gaia-senseware"].project-card').click();await ready('kelp-current');await screenshot('mobile-gaia');}
     record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 7 large previews, no overflow or heading/CTA overlap`);
   }
 
@@ -195,5 +195,5 @@ try{
   const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(4);await noJs.close();
   record('JavaScript disabled: all four live-site links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
-}catch(error){results.push({name:'v2.5.0 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.5.0/test-results.json',JSON.stringify({version:'2.5.0',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+}catch(error){results.push({name:'v2.5.13 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
+finally{await writeFile('qa/v2.5.13/test-results.json',JSON.stringify({version:'2.5.13',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}

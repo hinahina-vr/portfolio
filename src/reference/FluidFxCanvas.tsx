@@ -3405,6 +3405,7 @@ function GlslFluidFxCanvas({
       material.uniforms.uTime.value = elapsed
       renderer.setRenderTarget(null)
       renderer.render(scene, camera)
+      window.dispatchEvent(new CustomEvent('portfolio:water-frame', {detail: renderer.domElement}))
       if (fluidStyle === 10) {
         drawRicochetRayOverlay(gestureOverlayContext, ricochetRayState, elapsed, latestResize, fluidStyle)
       } else {

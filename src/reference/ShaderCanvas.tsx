@@ -469,6 +469,7 @@ export default function ShaderCanvas({
       })
 
       gl.drawArrays(gl.TRIANGLES, 0, 3)
+      window.dispatchEvent(new CustomEvent('portfolio:water-frame', {detail: gl.canvas}))
       if (!notifiedReady) {
         readyStartedAt ||= now
         readyFrames += 1
