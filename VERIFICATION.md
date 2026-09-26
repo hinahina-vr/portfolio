@@ -2,7 +2,7 @@
 
 サイト名・HTMLタイトル・選択後のdocument.titleをhinahina://へ統一。カテゴリ表示をWordsへ改名。既存の#works/textリンクは維持。
 
-index-KCasM4S1.js: ビルド成功。check-brandで1440/768/390/320pxの実Chrome表示、見出しとWords、4作品切替後のタイトル固定、ヘッダー非重複・横溢れなし、リロード後の選択保持を確認。静止画目視、動画なし。qa/v2.6.2に保存。公開確認は配信後に追記。
+index-KCasM4S1.js: ビルド成功。check-brandで1440/768/390/320pxの実Chrome表示、見出しとWords、4作品切替後のタイトル固定、ヘッダー非重複・横溢れなし、リロード後の選択保持を確認。静止画目視、動画なし。qa/v2.6.2に保存。公開済み: 401c7836a7bdea7d344e8cabdda21f94a25a6cc2 / Actions 36260629326。CI全17項目とdeploy成功。実公開URLのcheck-brandで4画面幅・Words全4作品切替後のタイトル固定・リロードPASS。check-deployment全5項目PASS、build.json 2.6.2/commit一致。
 
 ---
 
