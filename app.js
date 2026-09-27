@@ -22,9 +22,9 @@ let slideshowPaused=reduced.matches,slideshowTimer;
 let interactionUntil=0,interactionTimer,switching=false,navigation=0,backgroundSwitch;
 let disposeTransition=()=>{};
 let disposeEntrance=()=>{};
-let prepareTimer;
+let prepareTimer,initialPreparation=Promise.resolve();
 function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;}
-function slideshowHeld(){return document.hidden||!$('#scene-settings').hidden||immersed||switching;}
+function slideshowHeld(){return document.hidden||!!document.body.dataset.entrance||!$('#scene-settings').hidden||immersed||switching;}
 function syncSlideshow(){
   cancelSlideshow();
   const interval=Date.now()<interactionUntil?slideshowInterval*2:slideshowInterval;
@@ -102,14 +102,16 @@ function commitRender(nextCategory='web',id,updateHistory=false){
   liquidSurface().setSurface(panel.querySelector('.preview-surface'));
   disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousCaption);
   strip.dataset.count=String(data.projects.length);
-  strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
+  strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="320" height="180"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);
   document.title='hinahina://';
   syncSlideshow();
   clearTimeout(prepareTimer);
   if(!reduced.matches&&available){
     const index=data.projects.findIndex(item=>item.id===project.id),next=data.projects[(index+1)%data.projects.length];
-    prepareTimer=setTimeout(()=>{if(switching)return;Promise.all([preparePanel(project.image,next.image),liquidSurface().prepare(next.image)]).catch(()=>{});},previousId?4800:200);
+    const prepare=()=>Promise.all([preparePanel(project.image,next.image),liquidSurface().prepare(next.image)]).catch(()=>{});
+    if(!previousId)initialPreparation=prepare();
+    else prepareTimer=setTimeout(()=>{if(!switching)prepare();},4800);
   }
 }
 strip.addEventListener('click',event=>{const button=event.target.closest('[data-project]');if(!button)return;const id=button.dataset.project;const scroll=strip.scrollLeft;render(category,id,true).then(changed=>{if(!changed)return;strip.scrollLeft=scroll;strip.querySelector(`[data-project="${id}"]`)?.focus({preventScroll:true});});});
@@ -137,4 +139,4 @@ document.addEventListener('visibilitychange',syncSlideshow);
 reduced.addEventListener('change',event=>{slideshowPaused=event.matches;syncSlideshow();});
 new MutationObserver(reflectPaused).observe($('.motion-toggle'),{attributes:true,attributeFilter:['aria-pressed']});
 syncHash();updateMotion();reflectPaused();
-disposeEntrance=enterSite(reduced);
+disposeEntrance=enterSite(reduced,initialPreparation,()=>{if(!slideshowTimer)syncSlideshow();});

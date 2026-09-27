@@ -24,3 +24,6 @@ export const categories = {
     {id:'myth-making-machine',title:'神話製作機械',lines:['神話製作機械'],subtitle:'THE MYTH-MAKING MACHINE',medium:'Concept study, human agency',description:'データが導く「最適解」と、人が自ら選ぶことの関係を問う構想。未来の分岐を「神託」として差し出し、その意味を受け取ることも、退けることも、本人の意志に委ねる。',image:'./assets/myth-making-machine.png',url:'https://gaia-senseware.pages.dev/concept/#depth',scene:'fluid-chrome-stream',japanese:true,actionLabel:'Open concept'}
   ]}
 };
+
+// Small navigation previews keep the full-resolution work images out of UI layers.
+for(const category of Object.values(categories))for(const project of category.projects)project.thumbnail=project.image.replace(/\/([^/]+)\.[^/.]+$/,'/thumbs/$1.webp');

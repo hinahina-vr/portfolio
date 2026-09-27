@@ -53,7 +53,7 @@ try{
   await expect(page.locator('#tab-web')).toHaveAttribute('aria-selected','true');
   const box=await page.locator('.shader-canvas').boundingBox();
   expect(box).toMatchObject({x:0,y:0,width:1440,height:900});
-  expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth>500))).toBe(true);
+  expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth===320&&img.naturalHeight===180))).toBe(true);
   await screenshot('desktop-idle');
   record('Exhibition layout: hinahina identity, Gaia first, opaque borderless preview, full-screen shader and all four work buttons fit desktop');
 

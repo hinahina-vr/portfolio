@@ -88,7 +88,7 @@ function createLiquid(){
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let renderer,fluid,material,geometry,background,photoTexture,previousTexture,pigmentFlow;
  let photos,currentKey,previousKey;
- let surface,image,rect,raf,last=0,time=0,emerging,wring,paused=false,failed=false,attached=0,dirty=true;
+ let surface,image,rect,raf,last=0,time=0,emerging,wring,entranceSettled=false,paused=false,failed=false,attached=0,dirty=true;
  const blank=new THREE.DataTexture(new Uint8Array([6,28,32,255]),1,1);blank.needsUpdate=true;
  const scene=new THREE.Scene(),camera=new THREE.Camera();
  const uniforms={ocean:{value:blank},picture:{value:blank},previousPicture:{value:blank},density:{value:blank},velocity:{value:blank},resolution:{value:new THREE.Vector2()},crop:{value:new THREE.Vector2(1,1)},frameRect:{value:new THREE.Vector4()},time:{value:0},emergence:{value:1},opening:{value:0},imageBlend:{value:1},surfaceWet:{value:1},ink:{value:blank}};
@@ -113,6 +113,7 @@ function createLiquid(){
   photos.keep([current,currentKey]);
   photos.prepare(current).then(texture=>{
    if(generation!==attached)return;
+   dirty=true;
    current.style.opacity=reduced.matches?'':'0';
    previousTexture=photoTexture;previousKey=currentKey;currentKey=photoKey(current);
    photoTexture=texture;photos.keep([currentKey,previousKey]);
@@ -126,17 +127,17 @@ function createLiquid(){
   // Copy while the source WebGL drawing buffer is still valid.
   background.needsUpdate=true;renderer.initTexture(background);
  }
- function endEmergence(){if(!emerging)return;const done=emerging.resolve;emerging=null;uniforms.opening.value=0;if(surface)surface.style.visibility='';renderer?.domElement.classList.remove('wet-entrance');done();}
+ function endEmergence(){if(!emerging)return;const done=emerging.resolve;emerging=null;entranceSettled=true;uniforms.opening.value=0;uniforms.surfaceWet.value=wring?0:1;if(surface)surface.style.visibility='';renderer?.domElement.classList.remove('wet-entrance');done();}
  function emerge(next){
   setSurface(next);if(!renderer||failed||reduced.matches)return{finished:Promise.resolve(),clean:()=>{}};
-  endEmergence();surface.style.visibility='hidden';const finished=new Promise(resolve=>{emerging={start:performance.now(),resolve};});
+  endEmergence();entranceSettled=false;surface.style.visibility='hidden';const finished=new Promise(resolve=>{emerging={start:performance.now(),resolve};});
   renderer.domElement.classList.add('wet-entrance');uniforms.opening.value=1;uniforms.emergence.value=0;return{finished,clean:endEmergence};
  }
  function tick(now){
   raf=requestAnimationFrame(tick);const delta=Math.min((now-(last||now))/1000,.035);last=now;
   if(!surface?.isConnected||document.hidden||reduced.matches||document.body.classList.contains('immersed')){renderer.domElement.style.visibility='hidden';return;}
   renderer.domElement.style.visibility='';if(paused&&!emerging&&!wring&&!dirty)return;dirty=false;
-  time+=delta;uniforms.time.value=time;uniforms.surfaceWet.value=wring||document.body.dataset.entrance==='playing'?0:1;rect=image.getBoundingClientRect();
+  time+=delta;uniforms.time.value=time;uniforms.surfaceWet.value=wring||document.body.dataset.entrance==='playing'&&!entranceSettled?0:1;rect=image.getBoundingClientRect();
   let activeRect=rect,pressure=0;if(wring){activeRect=wring.rect;pressure=wring.pressure;uniforms.imageBlend.value=wring.blend;}else uniforms.imageBlend.value=1;
   const x=activeRect.x/innerWidth,y=1-activeRect.bottom/innerHeight,w=activeRect.width/innerWidth,h=activeRect.height/innerHeight;
   uniforms.frameRect.value.set(x,y,w,h);let visibility=1;
