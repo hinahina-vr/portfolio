@@ -18,6 +18,10 @@ const extF16 = gl.getExtension('EXT_color_buffer_half_float');
 const extAniso = gl.getExtension('EXT_texture_filter_anisotropic');
 if (!extF32 && !extF16) { fail("This GPU cannot render to floating-point textures (EXT_color_buffer_float / EXT_color_buffer_half_float missing)."); throw 0; }
 const FFT_FMT = extF32 ? gl.RGBA32F : gl.RGBA16F;
+const debugRenderer=gl.getExtension('WEBGL_debug_renderer_info');
+const software=!!debugRenderer&&/swiftshader|llvmpipe|softpipe|software/i.test(gl.getParameter(debugRenderer.UNMASKED_RENDERER_WEBGL));
+canvas.dataset.quality=software?'software':'hardware';
+
 
 /* ---------------- GL helpers ---------------- */
 function sh(type, src, name){
@@ -76,7 +80,7 @@ in vec2 vUv; out vec4 o;
 `;
 
 /* ---------------- Ocean spectrum (FFT) ---------------- */
-const N = 256, LOGN = 8;
+const N = software?64:256, LOGN = software?6:8;
 const L = 4.6;               // patch size (m)
 const DEPTH = 1.6;          // mean depth (m)
 const TARGET_SLOPE = 0.078;  // RMS slope
@@ -180,7 +184,7 @@ function runFFT(t){
 }
 
 /* ---------------- Interactive ripples (wave equation) ---------------- */
-const RN = 256, RSIZE = 7.0;   // local simulation, metres
+const RN = software?64:256, RSIZE = 7.0;   // local simulation, metres
 const rip = [0,1].map(()=>rt(RN,RN,gl.RGBA16F,{wrap:gl.CLAMP_TO_EDGE}));
 let ripIdx = 0, ripCenter = [0,0];
 const pRipple = prog(VS, HEAD+`
@@ -232,7 +236,7 @@ function stepRipples(shiftUV){
 }
 
 /* ---------------- Caustics ---------------- */
-const G = 256, C = 1024;
+const G = software?64:256, C = software?256:1024;
 const causRT = rt(C,C,gl.RGBA16F,{wrap:gl.REPEAT, mip:true, aniso:8});
 const gridVAO = gl.createVertexArray(); gl.bindVertexArray(gridVAO);
 {
@@ -406,7 +410,7 @@ void main(){
    The star around each sun glint is the lens aperture's diffraction pattern (its Fourier transform),
    integrated over wavelengths so the spikes carry faint rainbow tints. The bright image is convolved
    with it by FFT every frame, so the cost does not depend on how many glints there are. */
-const GLARE_ON = !!extF32 && !Q.has('noglare');
+const GLARE_ON = !software && !!extF32 && !Q.has('noglare');
 const pFFTg = prog(VS, HEAD+`
 uniform sampler2D uSrc; uniform int uP, uHoriz, uHalf; uniform float uSign;
 vec2 cmul(vec2 a, vec2 b){ return vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x); }
@@ -554,7 +558,7 @@ function renderGlare(){
 }
 let W=0, H=0, scale = 1.0, hdrRT, qA, qS, qB, qC, streakRT, b1, b2, b2t;
 const DPR = Math.min(window.devicePixelRatio||1, 2);
-let quality = FIXED_T!==null ? 1.0 : (DPR > 1.5 ? 0.72 : 0.95);
+let quality = software ? 0.2 : FIXED_T!==null ? 1.0 : (DPR > 1.5 ? 0.72 : 0.95);
 function alloc(){
   const cw = Math.max(1, Math.round(innerWidth*DPR*quality)), ch = Math.max(1, Math.round(innerHeight*DPR*quality));
   if (cw===W && ch===H) return;
@@ -675,7 +679,7 @@ function frame(now){
     ftAvg = ftAvg*0.95 + (dt*1000)*0.05; frames++;
     if (frames > 90){
       if (ftAvg > 21 && quality > 0.42){ quality = Math.max(0.42, quality*0.87); alloc(); frames = 0; }
-      else if (ftAvg < 14.5 && quality < 1.0){ quality = Math.min(1.0, quality*1.06); alloc(); frames = 0; }
+      else if (!software && ftAvg < 14.5 && quality < 1.0){ quality = Math.min(1.0, quality*1.06); alloc(); frames = 0; }
     }
     if (DEBUG && frames%15===0) $dbg.textContent = `${(1000/ftAvg).toFixed(0)} fps · ${W}×${H} · q ${quality.toFixed(2)}`;
   }

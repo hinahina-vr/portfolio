@@ -1,14 +1,15 @@
 import {chromium,expect} from '@playwright/test';
 import {mkdir,writeFile} from 'node:fs/promises';
 const base=process.argv[2]||'http://127.0.0.1:4173/';
-const dir='qa/water-fusion';await mkdir(dir,{recursive:true});
-const b=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const software=process.env.WATER_SOFTWARE==='1';
+const dir=software?'qa/water-fusion-software':'qa/water-fusion';await mkdir(dir,{recursive:true});
+const b=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:software?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
 const errors=[],passed=[];const pass=s=>{passed.push(s);console.log('PASS',s);};
 try{
  const p=await b.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});p.on('pageerror',e=>errors.push(e.message));
  await p.goto(base+'#works/web',{waitUntil:'networkidle'});
  const water=p.locator('.clearwater-canvas');const frames=()=>water.getAttribute('data-frames').then(Number);
- await expect.poll(frames).toBeGreaterThan(0);expect(await water.evaluate(c=>c.getContext('webgl2').getError())).toBe(0);
+ await expect.poll(frames,{timeout:60000}).toBeGreaterThan(0);if(software)await expect(water).toHaveAttribute('data-quality','software');expect(await water.evaluate(c=>c.getContext('webgl2').getError())).toBe(0);
  expect(Number(await water.getAttribute('data-source-frames'))).toBeGreaterThan(0);
  await p.screenshot({path:dir+'/botanical.png'});pass('Original live GLSL frames feed the real water renderer without GL errors');
  await p.waitForTimeout(400);const frozen=await frames();await p.waitForTimeout(600);expect(await frames()).toBe(frozen);

@@ -15,3 +15,5 @@
 - scripts/check-handoff.mjs: PASS. Replacement surface is opaque before the transition canvas is removed.
 
 Deployment verification will be recorded after publishing this revision.
+
+CI follow-up: the first Linux run timed out at 15 minutes during continuous software rendering (motion checks had passed). Added a real software-renderer quality profile: 64-point FFT, 256px caustics and reduced optical resolution; hardware profile unchanged. Paused navigation/layout checks after separately testing motion. Full 17 local tests and all 5 fusion checks passed again. Explicit SwiftShader fusion checks also passed (WATER_SOFTWARE=1); no mock rendering used.

@@ -31,7 +31,6 @@ try{
   // Background motion is enabled independently below; automatic advancement is covered by check-deployment.
   await page.emulateMedia({reducedMotion:'reduce'});
   await expect(page.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');
-  await page.locator('.motion-toggle').click();
   await expect(page.locator('.site-header h1')).toHaveText('hinahina://');
   await expect(page).toHaveTitle('hinahina://');
   await page.evaluate(()=>document.fonts.ready);
@@ -55,6 +54,7 @@ try{
   await screenshot('desktop-idle');
   record('Exhibition layout: hinahina identity, Gaia first, opaque borderless preview, full-screen shader and all four work buttons fit desktop');
 
+  await page.locator('.motion-toggle').click();
   await page.locator('.immerse-toggle').click();await page.waitForTimeout(500);
   const before=hash(await artImage());
   await page.mouse.move(1090,240);await page.mouse.down();await page.mouse.move(780,400,{steps:15});await page.mouse.move(1140,440,{steps:15});await page.mouse.up();
@@ -74,6 +74,7 @@ try{
   const resumed=hash(await artImage());await page.waitForTimeout(180);expect(hash(await artImage())).not.toBe(resumed);
   await page.keyboard.press('Escape');
   record('Actual fluid output reacts; pause freezes output during pointer input, persists on reload, and resumes');
+  await page.locator('.motion-toggle').click(); // Keep actual static shader frames for navigation/layout checks.
 
   for(const project of categories.web.projects){
     await page.locator(`.project-card[data-project="${project.id}"]`).click();
