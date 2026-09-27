@@ -26,3 +26,12 @@ GPU画像キャッシュが即座に解決する一方、新しく配置したHT
 最初のCIでは既存17項目は合格したが、新しい描画テストが画像比較で失敗し、公開は行われなかった。調査で、検査中の自動送りを待機させていなかったことを発見。20秒の検査遅延を入れると、GLSLを調べるつもりが中国地図へ進んでしまう状態をローカルでも再現した。
 
 テストは作品ボタンにキーボードフォーカスを置き、サイト既存の自動送り待機を使う。WebGLや絞り演出は有効なまま。GPUの採取時と参照画像取得時の作品IDも照合する。SwiftShaderのソフトウェア描画＋20秒の検査遅延でWeb4作品が合格。記録：`qa/photo-harness-delay-before/`、`qa/photo-software-delay-fixed/`。アプリの修正ビルドは変更していない。
+
+## 公開確認（2026-09-28）
+
+- 公開コード：`a1828e6c532a4e85cb83bd1e2f3bd0efc6ee0b8a`。
+- [GitHub Actions](https://github.com/hinahina-vr/portfolio/actions/runs/36328692747)：既存17項目と新規の通常WebGL描画テスト（Web4作品）が合格し、Pages公開成功。
+- 公開JS/CSSのSHA-256がローカル検証済み成果物と一致。`build.json` のコミットも一致。
+- 公開URLで全12作品＋Web再訪4回の計16回を再検証し、すべて合格。画像の単色化・無効uniform・透明化・実行時エラーを検出せず。GPUの採取時・参照画像取得時とも検証対象の作品IDに一致。
+- 公開後のQuiz Pal静止画でも、元のUIを含むスクショが描画されることを目視確認。
+- 記録：`qa/photo-solid-public/results.json`、`qa/photo-solid-public/assets.json`、同ディレクトリの作品別静止画。録画なし。
