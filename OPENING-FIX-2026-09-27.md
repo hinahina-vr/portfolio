@@ -50,3 +50,13 @@ node scripts/check-opening.mjs pixels
 ```
 
 `OPENING_URL`で測定先を指定できる。未指定は `http://127.0.0.1:4173/`。公開後の確認結果は追記する。
+
+## 公開後の確認
+
+- 公開コード：`a7572def7cb4e60e7993f24d54be34c7d6f4fed8`。
+- [GitHub Actions](https://github.com/hinahina-vr/portfolio/actions/runs/36309362372)：ビルド・既存17項目のブラウザテスト・Pages公開が成功。
+- 公開JS/CSSのSHA-256がローカル検証済み成果物と一致。`build.json`も上記コミットに一致。
+- 公開URLで再測定：1920×1080 / DPR 1は最大33.3ms・実効59.3fps、390×844 / DPR 3は最大17.1ms・実効60.0fps。どちらも50ms超0回、浮上中の4K転送0回。
+- 別実行の実GPUピクセル検査：終了付近の透明化0回、最終色より10%以上暗いフレーム0回。実行時エラー0件。
+- 本番スモークテスト5項目合格：実WebGL、実時間の自動送り、全12枚の4K画像・説明・リンク、選択の再読込、カテゴリとスマホ幅、公開リビジョン、通信・アプリエラー確認。公開後のスマホ幅静止画も目視確認。
+- 記録：`qa/opening-public-desktop/`、`qa/opening-public-mobile/`、`qa/deployment/public-results.json`。スマホはPC上のエミュレーションで、物理端末では未確認。録画なし。
