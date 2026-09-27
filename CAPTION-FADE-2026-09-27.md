@@ -12,3 +12,12 @@
 
 公開後の検証は追記する。
 - 最終ビルドで `npm test` の既存17項目も合格。
+
+## 公開確認
+
+- 公開コード：`774904125dd8788efb62698e3ea876af10957adc`。
+- [GitHub Actions](https://github.com/hinahina-vr/portfolio/actions/runs/36324914747) のビルド・ブラウザテスト・Pagesデプロイ成功。
+- 公開JS/CSSのSHA-256が検証済みローカル成果物と一致。公開 `build.json` のコミットも一致。
+- 本番URLで `check-caption-background.mjs` をPC・スマホ相当の2条件で実行し合格。背景のfade-out中のキャプション減光、タイトル位置・サイズ・フォントの維持、画像が開く直前からのフェードイン、連続操作と動き軽減への復帰を確認。実行時エラーなし。
+- `check-deployment.mjs` の本番スモークテスト5項目合格（実WebGL、自動送り、全12作品の4K画像・説明・リンク、再読込、カテゴリとモバイル表示、リビジョン、エラー確認）。
+- 記録：`qa/caption-public-desktop/`、`qa/caption-public-mobile/`、`qa/deployment/public-results.json`。
