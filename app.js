@@ -1,6 +1,6 @@
 import {categories} from './content.js';
 import {mountBackground} from './src/Background.jsx';
-import {transitionPanel} from './src/PanelTransition.js';
+import {transitionPanel,preparePanel} from './src/PanelTransition.js';
 import {liquidSurface} from './src/LiquidSurface.js';
 import {enterSite} from './src/Entrance.js';
 import {fadeBackground} from './src/BackgroundFade.js';
@@ -22,6 +22,7 @@ let slideshowPaused=reduced.matches,slideshowTimer;
 let interactionUntil=0,interactionTimer,switching=false,navigation=0,backgroundSwitch;
 let disposeTransition=()=>{};
 let disposeEntrance=()=>{};
+let prepareTimer;
 function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;}
 function slideshowHeld(){return document.hidden||!$('#scene-settings').hidden||immersed||switching;}
 function syncSlideshow(){
@@ -56,7 +57,7 @@ function render(nextCategory='web',id,updateHistory=false){
   const controller=new AbortController();backgroundSwitch=controller;
   if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
   const project=categories[nextCategory].projects.find(item=>item.id===id)||categories[nextCategory].projects[0];
-  disposeEntrance();cancelSlideshow();disposeTransition();
+  disposeEntrance();cancelSlideshow();disposeTransition();clearTimeout(prepareTimer);
   const changed=panel.dataset.project&&panel.dataset.project!==project.id;
   const commit=()=>{if(ticket!==navigation)return false;switching=false;commitRender(nextCategory,project.id,updateHistory);return true;};
   if(!changed||reduced.matches){
@@ -64,8 +65,9 @@ function render(nextCategory='web',id,updateHistory=false){
     setScene(project.scene);return Promise.resolve(commit());
   }
   switching=true;
-  return fadeBackground($('#background-root'),$('#art-stage'),project.scene,()=>setScene(project.scene),controller.signal)
-    .then(complete=>complete?commit():false);
+  const preparation=Promise.all([preparePanel(panel.querySelector('.preview-image'),project.image),liquidSurface().prepare(project.image)]).catch(()=>{});
+  return Promise.all([fadeBackground($('#background-root'),$('#art-stage'),project.scene,()=>setScene(project.scene),controller.signal),preparation])
+    .then(([complete])=>complete?commit():false);
 }
 function commitRender(nextCategory='web',id,updateHistory=false){
   disposeEntrance();
@@ -104,6 +106,11 @@ function commitRender(nextCategory='web',id,updateHistory=false){
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);
   document.title='hinahina://';
   syncSlideshow();
+  clearTimeout(prepareTimer);
+  if(!reduced.matches&&available){
+    const index=data.projects.findIndex(item=>item.id===project.id),next=data.projects[(index+1)%data.projects.length];
+    prepareTimer=setTimeout(()=>{if(switching)return;Promise.all([preparePanel(project.image,next.image),liquidSurface().prepare(next.image)]).catch(()=>{});},previousId?4800:200);
+  }
 }
 strip.addEventListener('click',event=>{const button=event.target.closest('[data-project]');if(!button)return;const id=button.dataset.project;const scroll=strip.scrollLeft;render(category,id,true).then(changed=>{if(!changed)return;strip.scrollLeft=scroll;strip.querySelector(`[data-project="${id}"]`)?.focus({preventScroll:true});});});
 function syncHash(){const [,cat,id]=location.hash.match(/^#works\/([^/]+)(?:\/([^/]+))?$/)||[];render(cat||'web',id);}

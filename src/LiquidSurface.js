@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {FluidSimulation} from 'three-fluid-fx';
 import {wetGlassGLSL} from './WetGlass.js';
 import {createPigmentFlow} from './PigmentFlow.js';
+import {photoTextures,photoKey} from './PhotoTextures.js';
 
 const vertex=`varying vec2 uvScreen;void main(){uvScreen=uv;gl_Position=vec4(position.xy,0.,1.);}`;
 const fragment=`
@@ -86,6 +87,7 @@ export function liquidSurface(){return instance ||= createLiquid();}
 function createLiquid(){
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let renderer,fluid,material,geometry,background,photoTexture,previousTexture,pigmentFlow;
+ let photos,currentKey,previousKey;
  let surface,image,rect,raf,last=0,time=0,emerging,wring,paused=false,failed=false,attached=0,dirty=true;
  const blank=new THREE.DataTexture(new Uint8Array([6,28,32,255]),1,1);blank.needsUpdate=true;
  const scene=new THREE.Scene(),camera=new THREE.Camera();
@@ -98,6 +100,7 @@ function createLiquid(){
   if(renderer||failed||reduced.matches)return;
   try{
    renderer=new THREE.WebGLRenderer({alpha:true,antialias:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+   photos=photoTextures(renderer);
    renderer.domElement.className='liquid-canvas';renderer.domElement.setAttribute('aria-hidden','true');renderer.domElement.dataset.solver='three-fluid-fx';document.body.append(renderer.domElement);
    fluid=new FluidSimulation(renderer,{profile:'performance',pressureIterations:8,bfecc:true,reflectWalls:false,curlStrength:0,enableVorticity:false,densityDissipation:.989,velocityDissipation:.988,splatRadius:.0006,splatForce:4});
    geometry=new THREE.PlaneGeometry(2,2);material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms,transparent:true,depthTest:false});
@@ -107,11 +110,12 @@ function createLiquid(){
  }
  function setSurface(next){
   dirty=true;surface=next;image=next?.querySelector('img');const current=image,generation=++attached;init();if(!renderer||failed||!current)return;
-  current.decode().then(()=>{
+  photos.keep([current,currentKey]);
+  photos.prepare(current).then(texture=>{
    if(generation!==attached)return;
    current.style.opacity=reduced.matches?'':'0';
-   previousTexture?.dispose();previousTexture=photoTexture;
-   photoTexture=new THREE.Texture(current);photoTexture.colorSpace=THREE.SRGBColorSpace;photoTexture.needsUpdate=true;
+   previousTexture=photoTexture;previousKey=currentKey;currentKey=photoKey(current);
+   photoTexture=texture;photos.keep([currentKey,previousKey]);
    uniforms.picture.value=photoTexture;uniforms.previousPicture.value=previousTexture||photoTexture;
    const ratio=current.naturalWidth/current.naturalHeight/(16/9);uniforms.crop.value.set(Math.min(1,1/ratio),Math.min(1,ratio));rect=current.getBoundingClientRect();
   }).catch(()=>{});
@@ -154,8 +158,8 @@ function createLiquid(){
  window.addEventListener('portfolio:water-frame',backgroundFrame);
  window.addEventListener('resize',()=>{endEmergence();resize();});
  reduced.addEventListener('change',()=>{endEmergence();if(reduced.matches){if(image)image.style.opacity='';if(renderer)renderer.domElement.style.visibility='hidden';}else{init();setSurface(surface);}});
- window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelAnimationFrame(raf);endEmergence();fluid?.dispose();pigmentFlow?.dispose();geometry?.dispose();material?.dispose();background?.dispose();photoTexture?.dispose();previousTexture?.dispose();blank.dispose();renderer?.dispose();},{once:true});
- return{setSurface,emerge,setPaused:value=>{paused=value;},setWring:value=>{
+ window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelAnimationFrame(raf);endEmergence();fluid?.dispose();pigmentFlow?.dispose();geometry?.dispose();material?.dispose();background?.dispose();photos?.dispose();blank.dispose();renderer?.dispose();},{once:true});
+ return{setSurface,emerge,prepare:source=>{init();return photos?.prepare(source)||Promise.resolve();},setPaused:value=>{paused=value;},setWring:value=>{
   wring=value;dirty=true;
   if(!value && renderer && image?.isConnected && !reduced.matches){
    const box=image.getBoundingClientRect();

@@ -1,12 +1,14 @@
 import {chromium,expect as baseExpect} from '@playwright/test';
 const expect=baseExpect.configure({timeout:10000});
 import {spawn} from 'node:child_process';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {categories} from '../content.js';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const {PNG}=require('../node_modules/playwright-core/lib/utilsBundle.js');
+const {version}=JSON.parse(await readFile('package.json','utf8'));
+const bundle=(await readFile('dist/index.html','utf8')).match(/src="([^"]+\.js)"/)?.[1];
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
@@ -198,4 +200,4 @@ try{
   record('JavaScript disabled: all nine destination links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
 }catch(error){results.push({name:'v2.5.13 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.5.13/test-results.json',JSON.stringify({version:'2.5.13',artifact:'dist',testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+finally{await writeFile('qa/v2.5.13/test-results.json',JSON.stringify({version,artifact:'dist',bundle,testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}

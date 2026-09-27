@@ -3438,9 +3438,22 @@ function GlslFluidFxCanvas({
       frameId = requestAnimationFrame(draw)
     }
 
-    frameId = requestAnimationFrame(draw)
+    let disposed = false
+    // Resolve parallel shader compilation before the first visible draw.
+    renderer.compileAsync(scene, camera).then(() => {
+      if (!disposed) {
+        previous = performance.now()
+        frameId = requestAnimationFrame(draw)
+      }
+    }).catch((compileError) => {
+      if (!disposed) {
+        setError(compileError instanceof Error ? compileError.message : 'Shader compilation failed.')
+        onCompileErrorRef.current?.(effect.id)
+      }
+    })
 
     return () => {
+      disposed = true
       cancelAnimationFrame(frameId)
       resizeObserver?.disconnect()
       window.removeEventListener('resize', requestResize)

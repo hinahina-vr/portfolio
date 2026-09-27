@@ -4,9 +4,10 @@ import {liquidSurface} from './LiquidSurface.js';
 const motionDuration=3200;
 import * as THREE from 'three';
 import {wetGlassGLSL} from './WetGlass.js';
+import {photoTextures} from './PhotoTextures.js';
 
 // One image surface; persistent fluid runoff is coordinated by LiquidSurface.
-let renderer;
+let renderer,photos,stage,ready;
 const vertexShader = `
   uniform float curl;
   uniform float gripLag;
@@ -60,6 +61,24 @@ const fragmentShader = `
     #include <colorspace_fragment>
   }
 `;
+function prepareStage(){
+ if(ready)return ready;
+ renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+ renderer.setClearColor(0x030708,0);renderer.domElement.className='panel-canvas';renderer.domElement.setAttribute('aria-hidden','true');
+ photos=photoTextures(renderer);
+ const scene=new THREE.Scene(),camera=new THREE.Camera();
+ const material=new THREE.ShaderMaterial({vertexShader,fragmentShader,side:THREE.DoubleSide,depthTest:true,depthWrite:true,
+  uniforms:{picture:{value:null},nextPicture:{value:null},crop:{value:new THREE.Vector2(1,1)},nextCrop:{value:new THREE.Vector2(1,1)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},gripLag:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}});
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,160,80),material);scene.add(mesh);stage={scene,camera,mesh};
+ ready=renderer.compileAsync(scene,camera).then(()=>stage);
+ return ready;
+}
+export async function preparePanel(previous,next){
+ await prepareStage();photos.keep([previous,next]);
+ await photos.prepare(previous);await photos.prepare(next);
+}
+window.addEventListener('pagehide',event=>{if(event.persisted)return;photos?.dispose();stage?.mesh.geometry.dispose();stage?.mesh.material.dispose();renderer?.dispose();},{once:true});
 export function transitionPanel(surface, previous, reduced, previousRect, previousCaption = []) {
   if (!previous || reduced.matches) return () => {};
   const incoming = surface.querySelector('img');
@@ -71,7 +90,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
   // presented the first flat frame. New text can change the incoming layout.
   if(previousRect)Object.assign(outgoing.style,{position:'fixed',left:`${previousRect.x}px`,top:`${previousRect.y}px`,width:`${previousRect.width}px`,height:`${previousRect.height}px`,opacity:'1',zIndex:'15'});
   document.body.append(outgoing);
-  let frame, stopped = false, meshes = [], animations = [];
+  let frame, stopped = false, animations = [];
   const captions=[...document.querySelectorAll('#work-panel .project-title,#work-panel .project-label,#work-panel .project-action-row,#work-panel .project-note')];
   captions.forEach(element=>element.style.opacity='0');
   const captionGhosts=previousCaption.map(({node,rect})=>{
@@ -86,12 +105,6 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
     pictureFinished=true;
     incoming.style.visibility='';surface.style.visibility='';
     outgoing.remove();liquidSurface().setWring(null);renderer?.domElement.remove();
-    for(const mesh of meshes){
-      mesh.geometry.dispose();
-      mesh.material.uniforms.picture.value.dispose();
-      mesh.material.uniforms.nextPicture.value.dispose();
-      mesh.material.dispose();
-    }
     delete surface.dataset.transition;
   };
   const clean = () => {
@@ -108,33 +121,19 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
   reduced.addEventListener('change', clean);
   window.addEventListener('resize', clean);
   surface.dataset.transition = 'loading';
-  Promise.all([incoming.decode(), previous.decode()]).then(() => {
+  Promise.all([incoming.decode(), previous.decode(),preparePanel(previous,incoming)]).then(async () => {
     if (stopped || !surface.isConnected) return clean();
     try {
-      renderer ||= new THREE.WebGLRenderer({alpha:true, antialias:true});
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-      renderer.setSize(innerWidth, innerHeight);
-      renderer.setClearColor(0x030708, 0);
-      renderer.domElement.className = 'panel-canvas';
-      renderer.domElement.setAttribute('aria-hidden', 'true');
-      const scene = new THREE.Scene();
-      const camera = new THREE.Camera();
-      const textureFor=img=>{const texture=new THREE.Texture(img);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;return texture;};
+      const {scene,camera,mesh}=stage;
+      const material=mesh.material,sheet=material.uniforms;
+      sheet.picture.value=await photos.prepare(previous);sheet.nextPicture.value=await photos.prepare(incoming);
+      if(stopped)return;
       const cropFor=img=>{const ratio=img.naturalWidth/img.naturalHeight/(16/9);return new THREE.Vector2(Math.min(1,1/ratio),Math.min(1,ratio));};
-      const material=new THREE.ShaderMaterial({
-        vertexShader,fragmentShader,side:THREE.DoubleSide,depthTest:true,depthWrite:true,
-        uniforms:{picture:{value:textureFor(previous)},nextPicture:{value:textureFor(incoming)},crop:{value:cropFor(previous)},nextCrop:{value:cropFor(incoming)},blend:{value:0},bleach:{value:0},time:{value:0},gather:{value:0},curl:{value:0},gripLag:{value:0},size:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()}}
-      });
-      const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,160,80),material);
-      meshes.push(mesh);scene.add(mesh);
-      const sheet=material.uniforms;
-
+      sheet.crop.value.copy(cropFor(previous));sheet.nextCrop.value.copy(cropFor(incoming));
+      if(renderer.domElement.width!==Math.floor(innerWidth*renderer.getPixelRatio())||renderer.domElement.height!==Math.floor(innerHeight*renderer.getPixelRatio()))renderer.setSize(innerWidth,innerHeight);
       const targetRect=incoming.getBoundingClientRect();
       const placement=rect=>({x:(rect.x+rect.width/2)/innerWidth*2-1,y:1-(rect.y+rect.height/2)/innerHeight*2,w:rect.width/innerWidth,h:rect.height/innerHeight});
       const origin=placement(previousRect||targetRect),target=placement(targetRect);
-      renderer.compile(scene,camera);
-      renderer.initTexture(material.uniforms.picture.value);
-      renderer.initTexture(material.uniforms.nextPicture.value);
       document.body.append(renderer.domElement);
       surface.dataset.transition = 'rolling';
       let start,hasPresented=false;

@@ -29,13 +29,16 @@ try{
  await p.locator('.project-card').nth(2).click();await p.waitForTimeout(80);await p.locator('.project-card').nth(3).click();
  await expect(p.locator('#work-panel')).toHaveAttribute('data-project','quiz-pal',{timeout:15000});
  await p.waitForSelector('.panel-canvas',{state:'detached'});results.push('Rapid selection commits latest project');
- await p.clock.install();
- await p.evaluate(()=>document.dispatchEvent(new Event('pointerdown')));
+ const idleStart=await p.evaluate(()=>performance.now());
+ await p.mouse.click(4,4);
  await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','16000');
- await p.clock.runFor(19000);
+ await p.waitForTimeout(10000);
  await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','16000');
- await p.clock.runFor(1100);
- await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','8000');results.push('Browser virtual clock: interaction sets 16s, 20s inactivity restores 8s');
+ await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','8000',{timeout:12000});
+ const idleElapsed=await p.evaluate(start=>performance.now()-start,idleStart);
+ expect(idleElapsed).toBeGreaterThanOrEqual(19500);expect(idleElapsed).toBeLessThan(22500);
+ results.push(`Actual browser input: 16s interval while interacting, 8s restored after ${Math.round(idleElapsed)}ms idle`);
+ const build=await p.locator('script[type=module]').getAttribute('src');
  await p.close();
  const mobile=await browser.newPage({reducedMotion:'reduce',isMobile:true,hasTouch:true});
  for(const [width,height] of [[320,568],[390,664],[667,375],[820,620]]){
@@ -51,5 +54,5 @@ try{
   await mobile.screenshot({path:`${output}/mobile-${width}.png`,fullPage:true});results.push(`${width}x${height}: last card selectable, controls reachable, no horizontal page overflow`);
  }
  expect(errors).toEqual([]);console.log(results.join('\n'));
- await writeFile(`${output}/results.json`,JSON.stringify({build:'index-B7NQcll_.js',results,errors,scope:'Local dist, desktop Chrome and mobile emulation; no physical iOS test, no video'},null,2));
+ await writeFile(`${output}/results.json`,JSON.stringify({build,results,errors,scope:'Local dist, desktop Chrome and mobile emulation; no physical iOS test, no video'},null,2));
 }finally{await browser.close();}
