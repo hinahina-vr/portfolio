@@ -3,6 +3,7 @@ import {mountBackground} from './src/Background.jsx';
 import {transitionPanel,preparePanel} from './src/PanelTransition.js';
 import {liquidSurface} from './src/LiquidSurface.js';
 import {enterSite} from './src/Entrance.js';
+import {fadeCaption} from './src/CaptionFade.js';
 import {fadeBackground} from './src/BackgroundFade.js';
 
 const $=selector=>document.querySelector(selector);
@@ -65,6 +66,7 @@ function render(nextCategory='web',id,updateHistory=false){
     setScene(project.scene);return Promise.resolve(commit());
   }
   switching=true;
+  fadeCaption(panel,controller.signal);
   const preparation=Promise.all([preparePanel(panel.querySelector('.preview-image'),project.image),liquidSurface().prepare(project.image)]).catch(()=>{});
   return Promise.all([fadeBackground($('#background-root'),$('#art-stage'),project.scene,()=>setScene(project.scene),controller.signal),preparation])
     .then(([complete])=>complete?commit():false);
@@ -75,7 +77,6 @@ function commitRender(nextCategory='web',id,updateHistory=false){
   disposeTransition();
   const previous=panel.querySelector('.preview-image');
   const previousRect=previous?.getBoundingClientRect();
-  const previousCaption=[...panel.querySelectorAll('.project-title,.project-label,.project-action-row,.project-note')].map(element=>({node:element.cloneNode(true),rect:element.getBoundingClientRect()}));
   const previousId=panel.dataset.project;
   if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
   category=nextCategory;
@@ -100,7 +101,7 @@ function commitRender(nextCategory='web',id,updateHistory=false){
     </figure>
   </article>`;
   liquidSurface().setSurface(panel.querySelector('.preview-surface'));
-  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousCaption);
+  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect);
   strip.dataset.count=String(data.projects.length);
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="320" height="180"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);

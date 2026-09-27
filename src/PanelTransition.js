@@ -79,7 +79,7 @@ export async function preparePanel(previous,next){
  await photos.prepare(previous);await photos.prepare(next);
 }
 window.addEventListener('pagehide',event=>{if(event.persisted)return;photos?.dispose();stage?.mesh.geometry.dispose();stage?.mesh.material.dispose();renderer?.dispose();},{once:true});
-export function transitionPanel(surface, previous, reduced, previousRect, previousCaption = []) {
+export function transitionPanel(surface, previous, reduced, previousRect) {
   if (!previous || reduced.matches) return () => {};
   const incoming = surface.querySelector('img');
   const outgoing = previous.cloneNode();
@@ -93,11 +93,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
   let frame, stopped = false, animations = [];
   const captions=[...document.querySelectorAll('#work-panel .project-title,#work-panel .project-label,#work-panel .project-action-row,#work-panel .project-note')];
   captions.forEach(element=>element.style.opacity='0');
-  const captionGhosts=previousCaption.map(({node,rect})=>{
-    node.setAttribute('aria-hidden','true');node.dataset.transitionText='outgoing';node.inert=true;
-    Object.assign(node.style,{position:'fixed',left:`${rect.x}px`,top:`${rect.y}px`,width:`${rect.width}px`,height:`${rect.height}px`,margin:'0',zIndex:'14',pointerEvents:'none'});
-    document.body.append(node);return node;
-  });
+
 
   let pictureFinished=false;
   const finishPicture=()=>{
@@ -114,7 +110,6 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
     finishPicture();
     animations.forEach(animation=>animation.cancel());
     captions.forEach(element=>element.style.removeProperty('opacity'));
-    captionGhosts.forEach(element=>element.remove());
     reduced.removeEventListener('change', clean);
     window.removeEventListener('resize', clean);
   };
@@ -137,7 +132,6 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       document.body.append(renderer.domElement);
       surface.dataset.transition = 'rolling';
       let start,hasPresented=false;
-      for(const element of captionGhosts)animations.push(element.animate([{opacity:1},{opacity:0}],{duration:1400,easing:'ease-in-out',fill:'forwards'}));
       // Ramp the pulling velocity up from zero, then retain the firm ease-out.
       const pull=(elapsed,duration)=>{
         const ramp=240;

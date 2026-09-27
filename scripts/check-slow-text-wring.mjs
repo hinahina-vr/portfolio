@@ -21,7 +21,7 @@ try{
  await p.screenshot({path:`output-placeholder/outgoing.png`.replace('output-placeholder',output)});
  await p.waitForFunction(()=>window.draws.at(-1).time-window.draws[0].time>1700);
  await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','0');
- await expect(p.locator('[data-transition-text=outgoing]').first()).toHaveCSS('opacity','0');
+ await expect(p.locator('[data-transition-text=outgoing]')).toHaveCount(0);
  await p.waitForSelector('.panel-canvas',{state:'detached'});
  const during=Number(await p.locator('#work-panel .project-title').evaluate(e=>getComputedStyle(e).opacity));expect(during).toBeLessThan(.8);
  await p.screenshot({path:`${output}/incoming.png`});
@@ -30,8 +30,8 @@ try{
  expect(first.held).toBe(true);expect(first.curl).toBe(0);expect(first.gather).toBe(0);
  expect(first.size[0]).toBeCloseTo(original.width/1200,4);expect(first.center[0]).toBeCloseTo((original.x+original.width/2)/1200*2-1,4);
  const early=draws.filter(d=>d.time-first.time<100);expect(early.every(d=>d.curl<1.5&&d.gather<.16)).toBe(true);
- expect(draws.some(d=>d.old>.1&&d.old<.9)).toBe(true);expect(draws.filter(d=>d.time-first.time<2900).every(d=>d.opacity===0)).toBe(true);expect(Math.max(...draws.map(d=>d.curl))).toBeGreaterThan(30.5);
- checks.push('First GPU frame stays flat at original image bounds and is drawn before old image removal','Pull starts gently while retaining full twist strength','Old title and caption fade out slowly; next title stays hidden until release','Text fade continues after screenshot settles without snapping to opacity 1');
+ expect(draws.filter(d=>d.time-first.time<2900).every(d=>d.opacity===0)).toBe(true);expect(Math.max(...draws.map(d=>d.curl))).toBeGreaterThan(30.5);
+ checks.push('First GPU frame stays flat at original image bounds and is drawn before old image removal','Pull starts gently while retaining full twist strength','Old caption is gone during wring; next title stays hidden until release','Text fade continues after screenshot settles without snapping to opacity 1');
  await p.locator('.project-card').nth(2).click();await p.waitForSelector('.panel-canvas');await p.waitForTimeout(400);await p.locator('.project-card').nth(3).click();await expect(p.locator('#work-panel')).toHaveAttribute('data-project','quiz-pal');await expect(p.locator('[data-transition-text=outgoing]')).toHaveCount(0,{timeout:10000});await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');
  await p.emulateMedia({reducedMotion:'reduce'});await p.locator('.project-card').first().click();await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');await expect(p.locator('.panel-canvas')).toHaveCount(0);
  await expect(p.locator('.motion-type')).toHaveCount(0);
