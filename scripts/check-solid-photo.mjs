@@ -5,7 +5,7 @@ import {categories} from '../content.js';
 const out=process.env.PHOTO_OUT||'qa/photo-solid-fixed';await mkdir(out,{recursive:true});
 const server=process.env.PHOTO_URL?null:spawn(process.execPath,['scripts/serve.mjs','dist','4196'],{stdio:'pipe',windowsHide:true});
 if(server)await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);});
-const b=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
+const b=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),args:process.env.PHOTO_SOFTWARE==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const results=[],errors=[];
 try{
  const p=await b.newPage({viewport:{width:1440,height:900}});p.on('pageerror',e=>errors.push(e.message));
@@ -15,7 +15,7 @@ try{
   C.drawElements=function(...args){const r=draw.apply(this,args);if(window.samplePhoto&&this.canvas.classList.contains('liquid-canvas')&&!this.getParameter(this.FRAMEBUFFER_BINDING)){
    const box=document.querySelector('.preview-image').getBoundingClientRect(),pixels=[];
    for(let y=1;y<=5;y++)for(let x=1;x<=5;x++){const rgba=new Uint8Array(4);this.readPixels(Math.floor((box.x+box.width*x/6)*this.canvas.width/innerWidth),Math.floor((innerHeight-box.y-box.height*y/6)*this.canvas.height/innerHeight),1,1,this.RGBA,this.UNSIGNED_BYTE,rgba);pixels.push([...rgba]);}
-   window.photoPixels=pixels;window.samplePhoto=false;
+   window.photoSampleProject=document.querySelector("#work-panel").dataset.project;window.photoPixels=pixels;window.samplePhoto=false;
   }return r;};
  });
  await p.goto(process.env.PHOTO_URL||'http://127.0.0.1:4196/',{waitUntil:'networkidle'});await p.waitForFunction(()=>!document.body.dataset.entrance);
@@ -25,16 +25,22 @@ try{
   const tab=p.locator(`#tab-${cat}`);if(await tab.getAttribute('aria-selected')!=='true')await tab.click();
   await expect(tab).toHaveAttribute('aria-selected','true');
   if(await p.locator('#work-panel').getAttribute('data-project')!==id)await p.locator(`.project-card[data-project="${id}"]`).click();
-  await expect(p.locator('#work-panel')).toHaveAttribute('data-project',id);
+  await expect(p.locator('#work-panel')).toHaveAttribute('data-project',id,{timeout:60000});
+  // Keyboard focus uses the site's existing autoplay hold, without disabling WebGL motion.
+  await p.keyboard.press('Tab');await p.locator(`.project-card[data-project="${id}"]`).focus();
+  expect(await p.locator(`.project-card[data-project="${id}"]`).evaluate(e=>e.matches(':focus-visible'))).toBe(true);
   await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1',{timeout:60000});
   await p.waitForTimeout(300);
+  if(process.env.PHOTO_DELAY==='1'&&id==='glsl-showcase')await p.waitForTimeout(20000);
   await p.evaluate(()=>{photoPixels=null;samplePhoto=true;});await p.waitForFunction(()=>!!window.photoPixels);
   const pixels=await p.evaluate(()=>photoPixels),bad=await p.evaluate(()=>badCrop),colors=new Set(pixels.map(v=>v.slice(0,3).join(','))).size;
   const expected=await p.locator('.preview-image').evaluate(img=>{const c=window.photoReference||=document.createElement('canvas'),gpu=document.querySelector('.liquid-canvas'),box=img.getBoundingClientRect();c.width=gpu.width;c.height=gpu.height;const sx=c.width/innerWidth,sy=c.height/innerHeight,ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,box.x*sx,box.y*sy,box.width*sx,box.height*sy);const samples=[];for(let y=1;y<=5;y++)for(let x=1;x<=5;x++)samples.push([...ctx.getImageData(Math.floor((box.x+box.width*x/6)*sx),c.height-1-Math.floor((innerHeight-box.y-box.height*y/6)*sy),1,1).data]);return samples;});
   const matching=pixels.filter((v,i)=>v.slice(0,3).every((n,c)=>Math.abs(n-expected[i][c])<25)).length;
-  const result={cat,id,colors,matching,pixels,expected,bad};results.push(result);await p.screenshot({path:`${out}/${cat}-${id}.png`});
+  const sampledProject=await p.evaluate(()=>photoSampleProject),referenceProject=await p.locator("#work-panel").getAttribute("data-project");
+  const result={cat,id,sampledProject,referenceProject,colors,matching,pixels,expected,bad};results.push(result);await p.screenshot({path:`${out}/${cat}-${id}.png`});
   await writeFile(`${out}/results.json`,JSON.stringify({bundle:await p.locator('script[type=module]').getAttribute('src'),url:p.url(),results,errors},null,2));
-  expect(bad).toEqual([]);// Wet refraction and GPU mipmaps differ from a 2D resize; detect collapsed photos, not pixel-perfect equality.
+  if(sampledProject!==id||referenceProject!==id||matching<13||bad.length)console.log(JSON.stringify(result));
+  expect(sampledProject).toBe(id);expect(referenceProject).toBe(id);expect(bad).toEqual([]);// Wet refraction and GPU mipmaps differ from a 2D resize; detect collapsed photos, not pixel-perfect equality.
   expect(colors).toBeGreaterThanOrEqual(Math.min(6,new Set(expected.map(v=>v.slice(0,3).join(','))).size));
   expect(matching).toBeGreaterThanOrEqual(13);expect(pixels.every(v=>v[3]===255)).toBe(true);console.log('PASS',id,'GPU reference matches:',matching+'/25');
  }
