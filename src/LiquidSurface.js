@@ -118,7 +118,8 @@ function createLiquid(){
    previousTexture=photoTexture;previousKey=currentKey;currentKey=photoKey(current);
    photoTexture=texture;photos.keep([currentKey,previousKey]);
    uniforms.picture.value=photoTexture;uniforms.previousPicture.value=previousTexture||photoTexture;
-   const ratio=current.naturalWidth/current.naturalHeight/(16/9);uniforms.crop.value.set(Math.min(1,1/ratio),Math.min(1,ratio));rect=current.getBoundingClientRect();
+   // Cached GPU pixels can be ready before this newly mounted img has dimensions.
+   const ratio=texture.image.width/texture.image.height/(16/9);uniforms.crop.value.set(Math.min(1,1/ratio),Math.min(1,ratio));rect=current.getBoundingClientRect();
   }).catch(()=>{});
  }
  function backgroundFrame(event){
