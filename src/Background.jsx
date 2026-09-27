@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import FluidFxCanvas from './reference/FluidFxCanvas';
 import ShaderCanvas from './reference/ShaderCanvas';
-import ClearwaterCanvas from './ClearwaterCanvas.jsx';
 import {featuredEffects} from './reference/effects/featured';
 import {aquaticEffects} from './reference/effects/aquatic';
 
@@ -27,7 +26,7 @@ export function mountBackground(element,onState){
     const values=useMemo(()=>({...defaults(effect),...state.values}),[effect,state.values]);
     useEffect(()=>{const listener=()=>setHidden(document.hidden);document.addEventListener('visibilitychange',listener);return()=>document.removeEventListener('visibilitychange',listener);},[]);
     const Renderer=effect.renderer==='three-fluid'?FluidFxCanvas:ShaderCanvas;
-    return <><ClearwaterCanvas paused={state.paused||hidden} values={values}/><Renderer effect={effect} values={values} paused={state.paused||hidden} quality="balanced" onReady={()=>onState({available:true,ready:true,scene:effect.id})} onStats={stats=>onState({fps:stats.fps})} onCompileError={()=>{document.querySelector('#art-stage').classList.add('no-webgl');onState({available:false});}}/></>;
+    return <Renderer effect={effect} values={values} paused={state.paused||hidden} quality="balanced" onReady={()=>onState({available:true,ready:true,scene:effect.id})} onStats={stats=>onState({fps:stats.fps})} onCompileError={()=>{document.querySelector('#art-stage').classList.add('no-webgl');onState({available:false});}}/>;
   }
   root.render(<Background/>);
   const change=partial=>{Object.assign(pending,partial);update?.(previous=>({...previous,...partial}));};
