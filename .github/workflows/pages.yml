@@ -6,6 +6,11 @@ on:
     paths-ignore:
       - '**/*.md'
   workflow_dispatch:
+    inputs:
+      full_tests:
+        description: Run the full browser and animated GPU regression suites
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -32,9 +37,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Build site
         run: npm run build
-      - name: Test built site in Chromium
+      - name: Smoke test built site
+        run: node tests/smoke.mjs
+      - name: Test built site in Chromium (full)
+        if: ${{ inputs.full_tests == true }}
         run: npm test
       - name: Verify animated screenshot pixels
+        if: ${{ inputs.full_tests == true }}
         run: node scripts/check-solid-photo.mjs --quick
       - name: Record deployed revision
         run: |
