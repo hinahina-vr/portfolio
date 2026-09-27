@@ -1,7 +1,6 @@
 import {categories} from './content.js';
 import {mountBackground} from './src/Background.jsx';
 import {transitionPanel} from './src/PanelTransition.js';
-import {captureTitle} from './src/MotionType.js';
 import {liquidSurface} from './src/LiquidSurface.js';
 import {enterSite} from './src/Entrance.js';
 import {fadeBackground} from './src/BackgroundFade.js';
@@ -74,8 +73,7 @@ function commitRender(nextCategory='web',id,updateHistory=false){
   disposeTransition();
   const previous=panel.querySelector('.preview-image');
   const previousRect=previous?.getBoundingClientRect();
-  const previousTitle=captureTitle(panel.querySelector('.project-title'));
-  const previousCaption=[...panel.querySelectorAll('.project-label,.project-action-row,.project-note')].map(element=>({node:element.cloneNode(true),rect:element.getBoundingClientRect()}));
+  const previousCaption=[...panel.querySelectorAll('.project-title,.project-label,.project-action-row,.project-note')].map(element=>({node:element.cloneNode(true),rect:element.getBoundingClientRect()}));
   const previousId=panel.dataset.project;
   if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
   category=nextCategory;
@@ -100,7 +98,7 @@ function commitRender(nextCategory='web',id,updateHistory=false){
     </figure>
   </article>`;
   liquidSurface().setSurface(panel.querySelector('.preview-surface'));
-  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle,previousCaption);
+  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousCaption);
   strip.dataset.count=String(data.projects.length);
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);

@@ -4,7 +4,6 @@ import {liquidSurface} from './LiquidSurface.js';
 const motionDuration=3200;
 import * as THREE from 'three';
 import {wetGlassGLSL} from './WetGlass.js';
-import {motionType} from './MotionType.js';
 
 // One image surface; persistent fluid runoff is coordinated by LiquidSurface.
 let renderer;
@@ -61,44 +60,48 @@ const fragmentShader = `
     #include <colorspace_fragment>
   }
 `;
-export function transitionPanel(surface, previous, reduced, previousRect, previousTitle, previousCaption = []) {
+export function transitionPanel(surface, previous, reduced, previousRect, previousCaption = []) {
   if (!previous || reduced.matches) return () => {};
   const incoming = surface.querySelector('img');
   const outgoing = previous.cloneNode();
   outgoing.alt = '';
   outgoing.setAttribute('aria-hidden', 'true');
   outgoing.className = 'panel-outgoing';
-  surface.append(outgoing);
+  // Keep the old pixels at their original viewport position until the GPU has
+  // presented the first flat frame. New text can change the incoming layout.
+  if(previousRect)Object.assign(outgoing.style,{position:'fixed',left:`${previousRect.x}px`,top:`${previousRect.y}px`,width:`${previousRect.width}px`,height:`${previousRect.height}px`,opacity:'1',zIndex:'15'});
+  document.body.append(outgoing);
   let frame, stopped = false, meshes = [], animations = [];
-  let cleanType=()=>{};
-  const captions=[...document.querySelectorAll('.project-label,.project-action-row,.project-note')];
+  const captions=[...document.querySelectorAll('#work-panel .project-title,#work-panel .project-label,#work-panel .project-action-row,#work-panel .project-note')];
   captions.forEach(element=>element.style.opacity='0');
   const captionGhosts=previousCaption.map(({node,rect})=>{
-    node.setAttribute('aria-hidden','true');node.inert=true;
+    node.setAttribute('aria-hidden','true');node.dataset.transitionText='outgoing';node.inert=true;
     Object.assign(node.style,{position:'fixed',left:`${rect.x}px`,top:`${rect.y}px`,width:`${rect.width}px`,height:`${rect.height}px`,margin:'0',zIndex:'14',pointerEvents:'none'});
     document.body.append(node);return node;
   });
 
-  const clean = () => {
-    if (stopped) return;
-    stopped = true;
-    cancelAnimationFrame(frame);
-    incoming.style.visibility = '';
-    surface.style.visibility = '';
-    animations.forEach(animation=>animation.cancel());
-    cleanType();
-    captions.forEach(element=>element.style.removeProperty("opacity"));
-    captionGhosts.forEach(element=>element.remove());
-    outgoing.remove();
-    liquidSurface().setWring(null);
-    renderer?.domElement.remove();
-    for (const mesh of meshes) {
+  let pictureFinished=false;
+  const finishPicture=()=>{
+    if(pictureFinished)return;
+    pictureFinished=true;
+    incoming.style.visibility='';surface.style.visibility='';
+    outgoing.remove();liquidSurface().setWring(null);renderer?.domElement.remove();
+    for(const mesh of meshes){
       mesh.geometry.dispose();
       mesh.material.uniforms.picture.value.dispose();
       mesh.material.uniforms.nextPicture.value.dispose();
       mesh.material.dispose();
     }
     delete surface.dataset.transition;
+  };
+  const clean = () => {
+    if (stopped) return;
+    stopped = true;
+    cancelAnimationFrame(frame);
+    finishPicture();
+    animations.forEach(animation=>animation.cancel());
+    captions.forEach(element=>element.style.removeProperty('opacity'));
+    captionGhosts.forEach(element=>element.remove());
     reduced.removeEventListener('change', clean);
     window.removeEventListener('resize', clean);
   };
@@ -125,17 +128,23 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2,160,80),material);
       meshes.push(mesh);scene.add(mesh);
       const sheet=material.uniforms;
-      document.body.append(renderer.domElement);
+
       const targetRect=incoming.getBoundingClientRect();
       const placement=rect=>({x:(rect.x+rect.width/2)/innerWidth*2-1,y:1-(rect.y+rect.height/2)/innerHeight*2,w:rect.width/innerWidth,h:rect.height/innerHeight});
       const origin=placement(previousRect||targetRect),target=placement(targetRect);
-      incoming.style.visibility = 'hidden';
-      surface.style.visibility = 'hidden';
-      outgoing.remove();
-      surface.dataset.transition = 'rolling';
       renderer.compile(scene,camera);
+      renderer.initTexture(material.uniforms.picture.value);
+      renderer.initTexture(material.uniforms.nextPicture.value);
+      document.body.append(renderer.domElement);
+      surface.dataset.transition = 'rolling';
       let start,hasPresented=false;
-      cleanType=motionType(previousTitle,document.querySelector('.project-title'));
+      for(const element of captionGhosts)animations.push(element.animate([{opacity:1},{opacity:0}],{duration:1400,easing:'ease-in-out',fill:'forwards'}));
+      // Ramp the pulling velocity up from zero, then retain the firm ease-out.
+      const pull=(elapsed,duration)=>{
+        const ramp=240;
+        const travel=elapsed<ramp?elapsed*elapsed/(2*ramp):elapsed-ramp/2;
+        return 1-Math.pow(1-Math.max(0,Math.min(1,travel/(duration-ramp/2))),4);
+      };
       const smooth = t => {t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
       let captionsRevealed=false;
       const tick = now => {
@@ -145,18 +154,17 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
         // Tighten the old image first. Crossfade its pixels on the same
         // surface while the twist releases, never as a second silhouette.
         const elapsed=now-start;
-        if(elapsed>=2850&&!captionsRevealed){
+        if(elapsed>=3000&&!captionsRevealed){
           captionsRevealed=true;
-          for(const element of captions)animations.push(element.animate([{opacity:0},{opacity:1}],{duration:320,easing:'ease-out',fill:'forwards'}));
-          for(const element of captionGhosts)animations.push(element.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}));
+          for(const element of captions)animations.push(element.animate([{opacity:0},{opacity:1}],{duration:1600,easing:'ease-in-out',fill:'forwards'}));
         }
         const release=Math.min(1,Math.max(0,(elapsed-2400)/800));
         // A sustained pull: load the sheet, bear down, hold, then release.
-        const twist=elapsed<1900?1-Math.pow(1-elapsed/1900,4):
+        const twist=elapsed<1900?pull(elapsed,1900):
           elapsed<2400?1:Math.pow(1-release,3.4);
         sheet.curl.value=twist*30.6;
         sheet.gripLag.value=gripOffset(elapsed);
-        sheet.gather.value=elapsed<2400?1-Math.pow(1-Math.min(1,elapsed/450),3):Math.pow(1-release,2.4);
+        sheet.gather.value=elapsed<2400?pull(elapsed,700):Math.pow(1-release,2.4);
         sheet.blend.value=smooth(release/.85);
         sheet.bleach.value=.92*smooth(elapsed/2200)+.08*smooth((elapsed-2200)/190);
         sheet.time.value=now/1000;
@@ -166,11 +174,18 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
         sheet.size.value.set(THREE.MathUtils.lerp(origin.w,target.w,placementMix),THREE.MathUtils.lerp(origin.h,target.h,placementMix));
         sheet.center.value.set(THREE.MathUtils.lerp(origin.x,target.x,placementMix),THREE.MathUtils.lerp(origin.y,target.y,placementMix));
         renderer.render(scene, camera);
-        if(!hasPresented){start=performance.now();hasPresented=true;}
+        if(!hasPresented){
+          incoming.style.visibility='hidden';surface.style.visibility='hidden';
+          outgoing.remove();start=performance.now();hasPresented=true;
+        }
         if (t < 1) frame = requestAnimationFrame(tick);
-        else clean();
+        else {
+          finishPicture();
+          // The image settles first; let the slower text fade finish naturally.
+          Promise.all(animations.map(animation=>animation.finished)).then(clean).catch(()=>{});
+        }
       };
-      frame = requestAnimationFrame(tick);
+      tick(performance.now());
     } catch { clean(); }
   }).catch(clean);
   return clean;
