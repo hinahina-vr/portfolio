@@ -62,7 +62,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .project-preview{grid-column:1;grid-row:1;min-width:0;width:100%;margin:0}
 .preview-link{position:relative;display:block;outline-offset:7px}
 .preview-surface{position:relative;isolation:isolate;display:block;overflow:hidden;background:#030708;border:0;box-shadow:none}
-.preview-image{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;opacity:1}
+.preview-image{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;opacity:.9}
 .panel-outgoing{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .panel-canvas{position:fixed;z-index:15;inset:0;width:100vw;height:100vh;pointer-events:none}
 .motion-type{position:fixed;z-index:16;inset:0;overflow:hidden;pointer-events:none;perspective:1200px}
@@ -282,7 +282,7 @@ body.immersed .liquid-canvas{visibility:hidden}
 .project-medium,.brand-description{letter-spacing:0}
 .card-title,.open-project{letter-spacing:-.01em}
 
-@media(prefers-reduced-motion:reduce){.preview-image{opacity:1!important}}
+@media(prefers-reduced-motion:reduce){.preview-image{opacity:.9!important}}
 
 /* Five categories and the author's destinations share the existing header. */
 .profile-links{display:flex;justify-self:end;align-items:center;gap:20px;font-size:12px;white-space:nowrap}
@@ -315,3 +315,6 @@ body.immersed .liquid-canvas{visibility:hidden}
  .canvas-controls{max-width:100%;justify-self:end}
 }
 @media(max-width:700px){.profile-links{gap:0;padding-top:0}.brand{min-width:0}}
+
+/* Artwork surfaces share the same 90% opacity, including WebGL transitions. */
+.liquid-canvas,.panel-canvas{opacity:.9}
