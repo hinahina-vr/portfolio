@@ -150,10 +150,10 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       const tick = now => {
         if (stopped) return;
         start ??= now;
-        const t = Math.min(1, (now - start) / motionDuration);
+        const t = Math.max(0, Math.min(1, (now - start) / motionDuration));
         // Tighten the old image first. Crossfade its pixels on the same
         // surface while the twist releases, never as a second silhouette.
-        const elapsed=now-start;
+        const elapsed=Math.max(0,now-start);
         if(elapsed>=3000&&!captionsRevealed){
           captionsRevealed=true;
           for(const element of captions)animations.push(element.animate([{opacity:0},{opacity:1}],{duration:1600,easing:'ease-in-out',fill:'forwards'}));

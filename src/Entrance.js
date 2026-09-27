@@ -1,5 +1,4 @@
 import {wetEntrance} from './WetEntrance.js';
-import {typeEase} from './MotionType.js';
 // The first composition appears over the already-running world. Navigation
 // stays in place; overlapping reveals never block a visitor's first action.
 export function enterSite(reduced) {
@@ -42,11 +41,7 @@ export function enterSite(reduced) {
     {opacity:1,transform:'none',filter:'url(#ui-emergence) blur(0px)'}
    ],1700,delay);
   }
-  for(const line of document.querySelectorAll('.title-line')){
-    const distance=innerWidth-line.getBoundingClientRect().left+32;
-    animations.push(line.animate([{transform:`translateX(${distance}px)`},{transform:'translateX(0)'}],{duration:760,delay:1700,easing:typeEase,fill:'both'}));
-  }
-  reveal('.project-label,.project-action-row,.project-note',[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],1100,2050);
+  reveal('.project-title,.project-label,.project-action-row,.project-note',[{opacity:0},{opacity:1}],1600,2050);
   document.addEventListener('pointerdown',clean,true);
   document.addEventListener('keydown',clean,true);
   reduced.addEventListener('change',clean);

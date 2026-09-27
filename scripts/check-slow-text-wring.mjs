@@ -5,12 +5,16 @@ const b=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Ap
 try{
  const p=await b.newPage({viewport:{width:1200,height:850}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.addInitScript(()=>{
-  window.draws=[];window.handoff=[];
+  window.draws=[];window.handoff=[];window.textAnimations=[];
+  const animate=Element.prototype.animate;
+  Element.prototype.animate=function(frames,options){if(this.matches('.project-title,.title-line,.project-label,.project-action-row,.project-note'))window.textAnimations.push({frames,options});return animate.call(this,frames,options);};
   const draw=WebGL2RenderingContext.prototype.drawElements;
   WebGL2RenderingContext.prototype.drawElements=function(...args){const result=draw.apply(this,args);if(this.canvas.classList.contains('panel-canvas')){const program=this.getParameter(this.CURRENT_PROGRAM),loc=this.getUniformLocation(program,'curl');if(loc){const get=name=>this.getUniform(program,this.getUniformLocation(program,name));const title=document.querySelector('#work-panel .project-title'),old=document.querySelector('[data-transition-text=outgoing]');window.draws.push({time:performance.now(),curl:get('curl'),gather:get('gather'),size:[...get('size')],center:[...get('center')],opacity:Number(getComputedStyle(title).opacity),old:old?Number(getComputedStyle(old).opacity):null,held:!!document.querySelector('.panel-outgoing')});}}return result;};
   const remove=Element.prototype.remove;Element.prototype.remove=function(){if(this.classList.contains('panel-canvas'))window.handoff.push({time:performance.now(),opacity:Number(getComputedStyle(document.querySelector('#work-panel .project-title')).opacity)});return remove.call(this);};
  });
  await p.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});await p.waitForFunction(()=>!document.body.dataset.entrance);
+ const opening=await p.evaluate(()=>window.textAnimations);expect(opening.length).toBeGreaterThan(0);expect(opening.every(a=>a.frames.every(f=>Object.keys(f).every(key=>key==='opacity')))).toBe(true);
+ checks.push('Opening project title and description animate opacity only, with no moving or scaled text');
  const original=await p.locator('.preview-image').boundingBox();await p.locator('.project-card').nth(1).click();
  await p.waitForFunction(()=>window.draws.length>2);
  await p.waitForFunction(()=>window.draws.at(-1).time-window.draws[0].time>600);
@@ -22,7 +26,7 @@ try{
  const during=Number(await p.locator('#work-panel .project-title').evaluate(e=>getComputedStyle(e).opacity));expect(during).toBeLessThan(.8);
  await p.screenshot({path:`${output}/incoming.png`});
  await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');await expect(p.locator('[data-transition-text=outgoing]')).toHaveCount(0);
- const draws=await p.evaluate(()=>window.draws);const first=draws[0];
+ const draws=await p.evaluate(()=>window.draws);const first=draws[0];await writeFile(`${output}/draws.json`,JSON.stringify(draws));
  expect(first.held).toBe(true);expect(first.curl).toBe(0);expect(first.gather).toBe(0);
  expect(first.size[0]).toBeCloseTo(original.width/1200,4);expect(first.center[0]).toBeCloseTo((original.x+original.width/2)/1200*2-1,4);
  const early=draws.filter(d=>d.time-first.time<100);expect(early.every(d=>d.curl<1.5&&d.gather<.16)).toBe(true);
@@ -30,6 +34,7 @@ try{
  checks.push('First GPU frame stays flat at original image bounds and is drawn before old image removal','Pull starts gently while retaining full twist strength','Old title and caption fade out slowly; next title stays hidden until release','Text fade continues after screenshot settles without snapping to opacity 1');
  await p.locator('.project-card').nth(2).click();await p.waitForSelector('.panel-canvas');await p.waitForTimeout(400);await p.locator('.project-card').nth(3).click();await expect(p.locator('#work-panel')).toHaveAttribute('data-project','quiz-pal');await expect(p.locator('[data-transition-text=outgoing]')).toHaveCount(0,{timeout:10000});await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');
  await p.emulateMedia({reducedMotion:'reduce'});await p.locator('.project-card').first().click();await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');await expect(p.locator('.panel-canvas')).toHaveCount(0);
+ await expect(p.locator('.motion-type')).toHaveCount(0);
  checks.push('Interrupted transition and reduced motion both restore text and image');expect(errors).toEqual([]);
  const html=await readFile('dist/index.html','utf8');await writeFile(`${output}/results.json`,JSON.stringify({build:html.match(/assets\/index-[^" ]+\.js/)?.[0],checks,errors,draws,scope:'Local Chrome desktop; screenshots, no video'},null,2));console.log(checks.join('\n'));
 }finally{await b.close();}
