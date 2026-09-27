@@ -88,7 +88,7 @@ export function transitionPanel(surface, previous, reduced, previousRect) {
   outgoing.className = 'panel-outgoing';
   // Keep the old pixels at their original viewport position until the GPU has
   // presented the first flat frame. New text can change the incoming layout.
-  if(previousRect)Object.assign(outgoing.style,{position:'fixed',left:`${previousRect.x}px`,top:`${previousRect.y}px`,width:`${previousRect.width}px`,height:`${previousRect.height}px`,opacity:'.9',zIndex:'15'});
+  if(previousRect)Object.assign(outgoing.style,{position:'fixed',left:`${previousRect.x}px`,top:`${previousRect.y}px`,width:`${previousRect.width}px`,height:`${previousRect.height}px`,opacity:'.8',zIndex:'15'});
   document.body.append(outgoing);
   let frame, stopped = false, animations = [];
   const captions=[...document.querySelectorAll('#work-panel .project-title,#work-panel .project-label,#work-panel .project-action-row,#work-panel .project-note')];

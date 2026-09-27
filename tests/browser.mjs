@@ -47,7 +47,8 @@ try{
   const previewBox=await page.locator('.preview-image').boundingBox();
   expect(previewBox.width).toBeGreaterThan(500);
   expect(previewBox.height).toBeGreaterThan(300);
-  await expect(page.locator('.preview-image')).toHaveCSS('opacity','0.9');
+  await expect(page.locator('.preview-image')).toHaveCSS('opacity','0.8');
+  await expect(page.locator('.preview-surface')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
   await expect(page.locator('.project-card')).toHaveCount(4);
   await expect(page.locator('#tab-web')).toHaveAttribute('aria-selected','true');
@@ -55,7 +56,7 @@ try{
   expect(box).toMatchObject({x:0,y:0,width:1440,height:900});
   expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth===320&&img.naturalHeight===180))).toBe(true);
   await screenshot('desktop-idle');
-  record('Exhibition layout: hinahina identity, Gaia first, 90%-opacity borderless preview, full-screen shader and all four work buttons fit desktop');
+  record('Exhibition layout: hinahina identity, Gaia first, 80%-opacity borderless preview, full-screen shader and all four work buttons fit desktop');
 
   await page.locator('.immerse-toggle').click();await page.waitForTimeout(500);
   const before=hash(await artImage());
