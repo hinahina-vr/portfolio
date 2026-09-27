@@ -61,7 +61,7 @@ const fragmentShader = `
     #include <colorspace_fragment>
   }
 `;
-export function transitionPanel(surface, previous, reduced, previousRect, previousTitle) {
+export function transitionPanel(surface, previous, reduced, previousRect, previousTitle, previousCaption = []) {
   if (!previous || reduced.matches) return () => {};
   const incoming = surface.querySelector('img');
   const outgoing = previous.cloneNode();
@@ -71,6 +71,13 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
   surface.append(outgoing);
   let frame, stopped = false, meshes = [], animations = [];
   let cleanType=()=>{};
+  const captions=[...document.querySelectorAll('.project-label,.project-action-row,.project-note')];
+  captions.forEach(element=>element.style.opacity='0');
+  const captionGhosts=previousCaption.map(({node,rect})=>{
+    node.setAttribute('aria-hidden','true');node.inert=true;
+    Object.assign(node.style,{position:'fixed',left:`${rect.x}px`,top:`${rect.y}px`,width:`${rect.width}px`,height:`${rect.height}px`,margin:'0',zIndex:'14',pointerEvents:'none'});
+    document.body.append(node);return node;
+  });
 
   const clean = () => {
     if (stopped) return;
@@ -80,6 +87,8 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
     surface.style.visibility = '';
     animations.forEach(animation=>animation.cancel());
     cleanType();
+    captions.forEach(element=>element.style.removeProperty("opacity"));
+    captionGhosts.forEach(element=>element.remove());
     outgoing.remove();
     liquidSurface().setWring(null);
     renderer?.domElement.remove();
@@ -128,8 +137,7 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
       let start,hasPresented=false;
       cleanType=motionType(previousTitle,document.querySelector('.project-title'));
       const smooth = t => {t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
-      const animate=(selector,keyframes)=>{const element=document.querySelector(selector);if(element)animations.push(element.animate(keyframes,{duration:1000,easing:'cubic-bezier(.22,.72,.2,1)',fill:'both'}));};
-      for(const selector of ['.project-label','.project-action-row','.project-note'])animate(selector,[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}]);
+      let captionsRevealed=false;
       const tick = now => {
         if (stopped) return;
         start ??= now;
@@ -137,6 +145,11 @@ export function transitionPanel(surface, previous, reduced, previousRect, previo
         // Tighten the old image first. Crossfade its pixels on the same
         // surface while the twist releases, never as a second silhouette.
         const elapsed=now-start;
+        if(elapsed>=2850&&!captionsRevealed){
+          captionsRevealed=true;
+          for(const element of captions)animations.push(element.animate([{opacity:0},{opacity:1}],{duration:320,easing:'ease-out',fill:'forwards'}));
+          for(const element of captionGhosts)animations.push(element.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}));
+        }
         const release=Math.min(1,Math.max(0,(elapsed-2400)/800));
         // A sustained pull: load the sheet, bear down, hold, then release.
         const twist=elapsed<1900?1-Math.pow(1-elapsed/1900,4):

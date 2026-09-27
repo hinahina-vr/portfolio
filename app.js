@@ -4,6 +4,7 @@ import {transitionPanel} from './src/PanelTransition.js';
 import {captureTitle} from './src/MotionType.js';
 import {liquidSurface} from './src/LiquidSurface.js';
 import {enterSite} from './src/Entrance.js';
+import {fadeBackground} from './src/BackgroundFade.js';
 
 const $=selector=>document.querySelector(selector);
 const panel=$('#work-panel'),strip=$('#project-strip');
@@ -19,13 +20,16 @@ let paused=reduced.matches;
 try{paused ||= localStorage.getItem('portfolio-motion')==='paused';}catch{}
 const slideshowInterval=8000;
 let slideshowPaused=reduced.matches,slideshowTimer;
+let interactionUntil=0,interactionTimer,switching=false,navigation=0,backgroundSwitch;
 let disposeTransition=()=>{};
 let disposeEntrance=()=>{};
 function cancelSlideshow(){clearTimeout(slideshowTimer);slideshowTimer=undefined;}
-function slideshowHeld(){return document.hidden||!$('#scene-settings').hidden||immersed;}
+function slideshowHeld(){return document.hidden||!$('#scene-settings').hidden||immersed||switching;}
 function syncSlideshow(){
   cancelSlideshow();
-  if(!slideshowPaused&&categories[category].projects.length>1&&!slideshowHeld())slideshowTimer=setTimeout(advanceSlideshow,slideshowInterval);
+  const interval=Date.now()<interactionUntil?slideshowInterval*2:slideshowInterval;
+  document.body.dataset.slideshowInterval=String(interval);
+  if(!slideshowPaused&&categories[category].projects.length>1&&!slideshowHeld())slideshowTimer=setTimeout(advanceSlideshow,interval);
 }
 function advanceSlideshow(){
   if(slideshowPaused||slideshowHeld())return syncSlideshow();
@@ -35,10 +39,11 @@ function advanceSlideshow(){
   const index=projects.findIndex(project=>project.id===panel.dataset.project);
   const next=projects[(index+1)%projects.length];
   const change=()=>{
-    render(category,next.id);
+    render(category,next.id).then(changed=>{if(!changed)return;
     history.replaceState(null,'',`#works/${category}/${next.id}`);
     const selected=strip.querySelector('[aria-pressed=true]');
     if(selected){const left=selected.offsetLeft-strip.offsetLeft;strip.scrollTo({left:Math.max(0,left-(strip.clientWidth-selected.offsetWidth)/2),behavior:reduced.matches?'instant':'smooth'});}
+    });
   };
   change();
 }
@@ -47,12 +52,30 @@ const art=mountBackground($('#background-root'),state=>{
 });
 function setScene(id){const scene=art.setScene(id);if(!scene)return;$('#scene-select').value=id;document.documentElement.style.setProperty('--accent',scene.accent);for(const key of ['intensity','motion']){$(`#${key}`).value=scene.values[key];$(`#${key}-value`).textContent=Number(scene.values[key]).toFixed(2);}}
 function render(nextCategory='web',id,updateHistory=false){
+  const ticket=++navigation;
+  backgroundSwitch?.abort();
+  const controller=new AbortController();backgroundSwitch=controller;
+  if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
+  const project=categories[nextCategory].projects.find(item=>item.id===id)||categories[nextCategory].projects[0];
+  disposeEntrance();cancelSlideshow();disposeTransition();
+  const changed=panel.dataset.project&&panel.dataset.project!==project.id;
+  const commit=()=>{if(ticket!==navigation)return false;switching=false;commitRender(nextCategory,project.id,updateHistory);return true;};
+  if(!changed||reduced.matches){
+    switching=false;$('#background-root').style.removeProperty('opacity');$('#art-stage').dataset.transitionPhase='ready';
+    setScene(project.scene);return Promise.resolve(commit());
+  }
+  switching=true;
+  return fadeBackground($('#background-root'),$('#art-stage'),project.scene,()=>setScene(project.scene),controller.signal)
+    .then(complete=>complete?commit():false);
+}
+function commitRender(nextCategory='web',id,updateHistory=false){
   disposeEntrance();
   cancelSlideshow();
   disposeTransition();
   const previous=panel.querySelector('.preview-image');
   const previousRect=previous?.getBoundingClientRect();
   const previousTitle=captureTitle(panel.querySelector('.project-title'));
+  const previousCaption=[...panel.querySelectorAll('.project-label,.project-action-row,.project-note')].map(element=>({node:element.cloneNode(true),rect:element.getBoundingClientRect()}));
   const previousId=panel.dataset.project;
   if(!Object.hasOwn(categories,nextCategory))nextCategory='web';
   category=nextCategory;
@@ -77,15 +100,14 @@ function render(nextCategory='web',id,updateHistory=false){
     </figure>
   </article>`;
   liquidSurface().setSurface(panel.querySelector('.preview-surface'));
-  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle);
+  disposeTransition=transitionPanel(panel.querySelector('.preview-surface'),previousId!==project.id?previous:null,reduced,previousRect,previousTitle,previousCaption);
   strip.dataset.count=String(data.projects.length);
   strip.innerHTML=data.projects.map(item=>`<button class="project-card" data-project="${item.id}" aria-pressed="${item.id===project.id}" aria-label="${escapeHtml(item.title)}を選択"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt||`${item.title}の実際の画面`)}" width="3840" height="2160"><span class="card-meta"><span class="card-title">${escapeHtml(item.title)}</span></span></button>`).join('');
-  setScene(project.scene);
   if(updateHistory)history.pushState(null,'',`#works/${category}/${project.id}`);
   document.title='hinahina://';
   syncSlideshow();
 }
-strip.addEventListener('click',event=>{const button=event.target.closest('[data-project]');if(!button)return;const id=button.dataset.project;const scroll=strip.scrollLeft;render(category,id,true);strip.scrollLeft=scroll;strip.querySelector(`[data-project="${id}"]`).focus({preventScroll:true});});
+strip.addEventListener('click',event=>{const button=event.target.closest('[data-project]');if(!button)return;const id=button.dataset.project;const scroll=strip.scrollLeft;render(category,id,true).then(changed=>{if(!changed)return;strip.scrollLeft=scroll;strip.querySelector(`[data-project="${id}"]`)?.focus({preventScroll:true});});});
 function syncHash(){const [,cat,id]=location.hash.match(/^#works\/([^/]+)(?:\/([^/]+))?$/)||[];render(cat||'web',id);}
 window.addEventListener('hashchange',syncHash);
 tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>render(tab.dataset.category,undefined,true));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;if(event.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=tabs.length-1;if(next!==undefined){event.preventDefault();tabs[next].focus();render(tabs[next].dataset.category,undefined,true);}});});
@@ -98,6 +120,14 @@ $('#settings-toggle').addEventListener('click',()=>settings($('#scene-settings')
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(immersed)immerse(false);if(!$('#scene-settings').hidden){settings(false);$('#settings-toggle').focus();}}});
 $('#scene-select').addEventListener('change',event=>setScene(event.target.value));for(const key of ['intensity','motion']){$(`#${key}`).addEventListener('input',event=>{const value=Number(event.target.value);$(`#${key}-value`).textContent=value.toFixed(2);art.setValue(key,value);});}
 const reflectPaused=()=>document.body.classList.toggle('art-paused',$('.motion-toggle').getAttribute('aria-pressed')==='true');
+function registerInteraction(){
+  const first=Date.now()>=interactionUntil;
+  interactionUntil=Date.now()+20000;
+  clearTimeout(interactionTimer);
+  interactionTimer=setTimeout(()=>{interactionUntil=0;syncSlideshow();},20000);
+  if(first)syncSlideshow();
+}
+for(const type of ['pointerdown','pointermove','keydown','wheel','input'])document.addEventListener(type,registerInteraction,{passive:true,capture:true});
 document.addEventListener('visibilitychange',syncSlideshow);
 reduced.addEventListener('change',event=>{slideshowPaused=event.matches;syncSlideshow();});
 new MutationObserver(reflectPaused).observe($('.motion-toggle'),{attributes:true,attributeFilter:['aria-pressed']});

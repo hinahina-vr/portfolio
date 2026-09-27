@@ -302,3 +302,15 @@ body.immersed .liquid-canvas{visibility:hidden}
  .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line{display:block}
  .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line+.title-line:before{content:none}
 }
+
+/* Compact icon destinations, with separate touch targets. */
+.profile-links{gap:4px}
+.profile-links a{display:grid;place-items:center;width:44px;height:44px;padding:0}
+.profile-links svg{width:18px;height:18px;fill:currentColor}
+@media(max-width:850px){
+ .collection{grid-template-columns:minmax(0,1fr);min-width:0;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+ .project-strip{width:100%;max-width:100%;padding:6px;scroll-padding-inline:6px}
+ .project-card{scroll-snap-align:start}
+ .canvas-controls{max-width:100%;justify-self:end}
+}
+@media(max-width:700px){.profile-links{gap:0;padding-top:0}.brand{min-width:0}}

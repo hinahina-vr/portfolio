@@ -1,0 +1,55 @@
+import {chromium,expect} from '@playwright/test';
+import {mkdir,writeFile} from 'node:fs/promises';
+const output='qa/navigation-ui';await mkdir(output,{recursive:true});
+const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const results=[],errors=[];
+try{
+ const p=await browser.newPage({viewport:{width:1200,height:850}});p.on('pageerror',e=>errors.push(e.message));
+ await p.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+ await p.waitForFunction(()=>!document.body.dataset.entrance);
+ await expect(p.locator('.brand-description')).toHaveCount(0);
+ await expect(p.locator('.profile-links svg')).toHaveCount(3);
+ await p.evaluate(()=>{window.framesSeen=[];window.observer=new MutationObserver(()=>window.framesSeen.push({phase:document.querySelector('#art-stage').dataset.transitionPhase,canvas:!!document.querySelector('.panel-canvas')}));window.observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-transition-phase']});});
+ await p.locator('.project-card').nth(1).click();
+ await expect(p.locator('#art-stage')).toHaveAttribute('data-transition-phase','fade-out');
+ await expect(p.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
+ await p.waitForSelector('.panel-canvas');
+ await expect(p.locator('#art-stage')).toHaveAttribute('data-transition-phase','ready');
+ await expect(p.locator('#work-panel .project-label')).toHaveCSS('opacity','0');
+ await p.waitForTimeout(1500);
+ await expect(p.locator('#work-panel .project-label')).toHaveCSS('opacity','0');
+ await p.waitForFunction(()=>{const e=document.querySelector('#work-panel .project-label');const opacity=Number(getComputedStyle(e).opacity);return opacity>0&&opacity<1;});
+ await p.screenshot({path:`${output}/caption-crossfade.png`});
+ await p.waitForSelector('.panel-canvas',{state:'detached'});
+ await expect(p.locator('#work-panel .project-label')).toHaveCSS('opacity','1');
+ const timeline=await p.evaluate(()=>{window.observer.disconnect();return window.framesSeen;});
+ expect(timeline.some(x=>x.phase==='fade-in')).toBe(true);
+ expect(timeline.filter(x=>x.canvas).every(x=>x.phase==='ready')).toBe(true);
+ results.push('Real-time background fade precedes wring; description stays hidden during squeeze, crossfades near release and is visible after completion');
+ await p.locator('.project-card').nth(2).click();await p.waitForTimeout(80);await p.locator('.project-card').nth(3).click();
+ await expect(p.locator('#work-panel')).toHaveAttribute('data-project','quiz-pal',{timeout:15000});
+ await p.waitForSelector('.panel-canvas',{state:'detached'});results.push('Rapid selection commits latest project');
+ await p.clock.install();
+ await p.evaluate(()=>document.dispatchEvent(new Event('pointerdown')));
+ await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','16000');
+ await p.clock.runFor(19000);
+ await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','16000');
+ await p.clock.runFor(1100);
+ await expect(p.locator('body')).toHaveAttribute('data-slideshow-interval','8000');results.push('Browser virtual clock: interaction sets 16s, 20s inactivity restores 8s');
+ await p.close();
+ const mobile=await browser.newPage({reducedMotion:'reduce',isMobile:true,hasTouch:true});
+ for(const [width,height] of [[320,568],[390,664],[667,375],[820,620]]){
+  await mobile.setViewportSize({width,height});await mobile.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+  await mobile.locator('.collection').scrollIntoViewIfNeeded();
+  await mobile.locator('#project-strip').evaluate(el=>el.scrollLeft=el.scrollWidth);
+  const last=mobile.locator('.project-card').last();await last.click();
+  const bounds=await last.boundingBox();expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.x+bounds.width).toBeLessThanOrEqual(width);
+  await mobile.locator('.canvas-controls').scrollIntoViewIfNeeded();
+  const controls=await mobile.locator('.canvas-controls').boundingBox();expect(controls.x+controls.width).toBeLessThanOrEqual(width);expect(controls.y+controls.height).toBeLessThanOrEqual(height+1);
+  await mobile.locator('#settings-toggle').click();await expect(mobile.locator('#scene-settings')).toBeVisible();await mobile.locator('#settings-close').click();
+  expect(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await mobile.screenshot({path:`${output}/mobile-${width}.png`,fullPage:true});results.push(`${width}x${height}: last card selectable, controls reachable, no horizontal page overflow`);
+ }
+ expect(errors).toEqual([]);console.log(results.join('\n'));
+ await writeFile(`${output}/results.json`,JSON.stringify({build:'index-B7NQcll_.js',results,errors,scope:'Local dist, desktop Chrome and mobile emulation; no physical iOS test, no video'},null,2));
+}finally{await browser.close();}
