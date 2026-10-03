@@ -300,8 +300,8 @@ body.immersed .liquid-canvas{visibility:hidden}
 @media(max-width:360px){.profile-links{gap:10px}.brand{min-width:140px}.category-tabs button{padding:0 5px;font-size:10px}}
 
 @media(max-width:850px){
- .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line{display:block}
- .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"]) .title-line+.title-line:before{content:none}
+ .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"],[data-project="zen-quest-map"]) .title-line{display:block}
+ .work-panel:is([data-project="hinahina-text"],[data-project="maltbc"],[data-project="zen-quest-map"]) .title-line+.title-line:before{content:none}
 }
 
 /* Compact icon destinations, with separate touch targets. */

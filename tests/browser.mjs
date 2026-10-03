@@ -50,13 +50,13 @@ try{
   await expect(page.locator('.preview-image')).toHaveCSS('opacity','0.8');
   await expect(page.locator('.preview-surface')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
-  await expect(page.locator('.project-card')).toHaveCount(4);
+  await expect(page.locator('.project-card')).toHaveCount(categories.web.projects.length);
   await expect(page.locator('#tab-web')).toHaveAttribute('aria-selected','true');
   const box=await page.locator('.shader-canvas').boundingBox();
   expect(box).toMatchObject({x:0,y:0,width:1440,height:900});
   expect(await page.locator('.project-card img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth===320&&img.naturalHeight===180))).toBe(true);
   await screenshot('desktop-idle');
-  record('Exhibition layout: hinahina identity, Gaia first, 80%-opacity borderless preview, full-screen shader and all four work buttons fit desktop');
+  record('Exhibition layout: hinahina identity, Gaia first, 80%-opacity borderless preview, full-screen shader and all work buttons fit desktop');
 
   await page.locator('.immerse-toggle').click();await page.waitForTimeout(500);
   const before=hash(await artImage());
@@ -95,9 +95,9 @@ try{
     await popup.close();
     if(project.id==='gaia-senseware'){const ctaPopup=page.waitForEvent('popup');await page.locator('.open-project').click();const actual=await ctaPopup;await actual.waitForLoadState('domcontentloaded');expect(new URL(actual.url()).hostname).toBe('gaia-senseware.pages.dev');await actual.close();}
   }
-  record('Four projects: selection, titles, large preview image/URL mapping, and screenshot links open actual external sites in new tabs');
-  await page.goBack();await expect(page.locator('#work-panel')).toHaveAttribute('data-project','chinameng');
-  await page.reload({waitUntil:'networkidle'});await ready();await expect(page.locator('#work-panel')).toHaveAttribute('data-project','chinameng');
+  record('Web projects: selection, titles, large preview image/URL mapping, and screenshot links open actual external sites in new tabs');
+  await page.goBack();await expect(page.locator('#work-panel')).toHaveAttribute('data-project',categories.web.projects.at(-2).id);
+  await page.reload({waitUntil:'networkidle'});await ready();await expect(page.locator('#work-panel')).toHaveAttribute('data-project',categories.web.projects.at(-2).id);
   await page.locator('#tab-web').click();await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
   await page.goto(url);await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
   record('Project-specific URLs, browser Back and reload preserve selection; Web tab and root URL open Gaia');
