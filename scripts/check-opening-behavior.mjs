@@ -1,12 +1,13 @@
 import {chromium,expect} from '@playwright/test';
-import {mkdir,writeFile} from 'node:fs/promises';
-const out='qa/opening-behavior';await mkdir(out,{recursive:true});const url=process.env.OPENING_URL||'http://127.0.0.1:4173/';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+const {version}=JSON.parse(await readFile('package.json','utf8'));
+const out='qa/v2.7.0/opening-behavior';await mkdir(out,{recursive:true});const url=process.env.OPENING_URL||'http://127.0.0.1:4173/';
 const b=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true});const results=[],errors=[];let bundle;
 const open=async(delay=0,paused=false)=>{const p=await b.newPage({viewport:{width:1440,height:900}});p.on('pageerror',e=>errors.push(e.message));if(paused)await p.addInitScript(()=>{
  localStorage.setItem('portfolio-motion','paused');
  const draw=WebGL2RenderingContext.prototype.drawElements;
  WebGL2RenderingContext.prototype.drawElements=function(...args){const r=draw.apply(this,args);if(this.canvas.classList.contains('liquid-canvas')&&!this.getParameter(this.FRAMEBUFFER_BINDING)){const image=document.querySelector('.preview-image');if(image){const box=image.getBoundingClientRect(),pixel=new Uint8Array(4);this.readPixels(Math.floor((box.x+box.width*.7)*this.canvas.width/innerWidth),Math.floor((innerHeight-box.y-box.height*.5)*this.canvas.height/innerHeight),1,1,this.RGBA,this.UNSIGNED_BYTE,pixel);window.pausedPixel=[...pixel];}}return r;};
- });if(delay)await p.route('**/assets/gaia-senseware.png',async route=>{await new Promise(r=>setTimeout(r,delay));await route.continue();});await p.goto(url,{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>document.body.dataset.entrance==='playing');bundle=await p.locator('script[type=module]').getAttribute('src');return p;};
+ });if(delay)await p.route('**/assets/gaia-senseware.webp',async route=>{await new Promise(r=>setTimeout(r,delay));await route.continue();});await p.goto(url,{waitUntil:'domcontentloaded'});if(paused)await expect(p.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');else await p.waitForFunction(()=>document.body.dataset.entrance==='playing');bundle=await p.locator('script[type=module]').getAttribute('src');return p;};
 try{
  let p=await open();
  await p.waitForFunction(()=>{const e=document.querySelector('.category-tabs'),s=getComputedStyle(e);return Number(s.opacity)>.3&&Number(s.opacity)<.99&&s.transform!=='none';});
@@ -24,8 +25,8 @@ try{
   p=await open(1800,type==='paused');if(type!=='reduced')await p.mouse.click(4,4);else await p.emulateMedia({reducedMotion:'reduce'});
   await p.waitForFunction(()=>!document.body.dataset.entrance);await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');await p.waitForTimeout(3000);await expect(p.locator('.liquid-canvas')).not.toHaveClass(/wet-entrance/);await expect(p.locator('.site-header')).toHaveCSS('opacity','1');
   if(type==='paused'){expect(await p.evaluate(()=>window.pausedPixel?.[3])).toBe(255);await expect(p.locator('.motion-toggle')).toHaveAttribute('aria-pressed','true');}
-  results.push(`${type}: cancelling during preparation restores UI and cannot restart the opening later`);await p.close();
+  results.push(type==='paused'?'Saved pause skips the opening, preserves opaque source pixels and shows ready controls':`${type}: cancelling during preparation restores UI and cannot restart the opening later`);await p.close();
  }
  p=await open();await p.waitForSelector('.wet-entrance');await p.waitForTimeout(600);await p.setViewportSize({width:390,height:844});await p.waitForFunction(()=>!document.body.dataset.entrance);await expect(p.locator('#work-panel .project-title')).toHaveCSS('opacity','1');expect(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await p.screenshot({path:`${out}/resized-mobile.png`,fullPage:true});await p.close();results.push('Resize during emergence settles the image and UI cleanly at mobile width');
- expect(errors).toEqual([]);await writeFile(`${out}/results.json`,JSON.stringify({bundle,url,results,errors},null,2));console.log(results.join('\n'));
+ expect(errors).toEqual([]);await writeFile(`${out}/results.json`,JSON.stringify({version,bundle,url,results,errors},null,2));console.log(results.join('\n'));
 }finally{await b.close();}

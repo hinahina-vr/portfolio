@@ -113,7 +113,14 @@ export function createPigmentFlow(renderer,shared){
  const fieldMaterial=new THREE.ShaderMaterial({vertexShader:splatVertex,fragmentShader:splatFragment,uniforms,side:THREE.DoubleSide,transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor,blendEquation:THREE.AddEquation});
  const mesh=new THREE.Mesh(geometry,fieldMaterial);mesh.frustumCulled=false;fieldScene.add(mesh);
  return {
-  setEmitters(points){points.forEach((p,i)=>{emitterData.set([p.x,p.y,p.weight,p.v],i*4);emitterData.set([p.u??(i+.25)/16,p.v,0,0],(i+16)*4);});emitters.needsUpdate=true;},
+  setEmitters(points){
+   for(let i=0;i<points.length;i++){
+    const p=points[i],at=i*4,uv=(i+16)*4;
+    emitterData[at]=p.x;emitterData[at+1]=p.y;emitterData[at+2]=p.weight;emitterData[at+3]=p.v;
+    emitterData[uv]=p.u??(i+.25)/16;emitterData[uv+1]=p.v;emitterData[uv+2]=0;emitterData[uv+3]=0;
+   }
+   emitters.needsUpdate=true;
+  },
   resize(w,h){field?.dispose();field=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,depthBuffer:false});},
   step(){
    uniforms.emissionTime.value+=shared.dt.value*(1+shared.force.value*5);

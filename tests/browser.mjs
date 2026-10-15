@@ -12,7 +12,7 @@ const bundle=(await readFile('dist/index.html','utf8')).match(/src="([^"]+\.js)"
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
-await mkdir('qa/v2.5.13',{recursive:true});
+await mkdir('qa/v2.7.0',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
@@ -20,7 +20,7 @@ const record=(name,details='')=>{results.push({name,status:'PASS',details});cons
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
 function pixelDifference(a,b){const left=PNG.sync.read(a),right=PNG.sync.read(b);expect(left.width).toBe(right.width);expect(left.height).toBe(right.height);let max=0,changed=0;for(let i=0;i<left.data.length;i++){const delta=Math.abs(left.data[i]-right.data[i]);max=Math.max(max,delta);if(delta>2)changed++;}return{max,changed};}
 const artImage=()=>page.screenshot({clip:{x:650,y:170,width:650,height:380}});
-const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.5.13/${name}.png`,fullPage:true});};
+const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.7.0/${name}.png`,fullPage:true});};
 page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('response',response=>{if(response.url().startsWith(url)&&response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
@@ -42,7 +42,7 @@ try{
   await expect(page.getByRole('tab')).toHaveText(['Web','Visual','Words','Video','Experiments']);
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('惑星の放課後');
   await expect(page.locator('.project-card').first()).toHaveAttribute('data-project','gaia-senseware');
-  await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.png');
+  await expect(page.locator('.preview-image')).toHaveAttribute('src','./assets/gaia-senseware.webp');
   expect(await page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth===3840)).toBe(true);
   const previewBox=await page.locator('.preview-image').boundingBox();
   expect(previewBox.width).toBeGreaterThan(500);
@@ -156,11 +156,12 @@ try{
       for(const project of categories[cat].projects){
         await page.locator(`.project-card[data-project="${project.id}"]`).click();
         await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName(project.title);
+        await expect(page.locator(`.project-card[data-project="${project.id}"] .card-title`)).toHaveText(project.navTitle||project.title);
         expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
         await expect(page.locator('.preview-image')).toHaveAttribute('src',project.image);
         await expect.poll(()=>page.locator('.preview-image').evaluate(img=>img.complete&&img.naturalWidth>500)).toBe(true);
         await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));
-        const preview=await page.locator('.preview-image').boundingBox();expect(preview.width).toBeGreaterThan(viewport.width<=700?viewport.width*.8:viewport.width<=850?viewport.width*.68:300);
+        const preview=await page.locator('.preview-image').boundingBox();expect(preview.width).toBeGreaterThan(viewport.width<=700?viewport.width*.8:viewport.width<=950?viewport.width*.68:300);
         const label=page.locator('.project-label');
         await expect(label).toHaveAttribute('lang','en');
         await expect(label.locator('.project-medium')).toHaveText(project.medium);
@@ -168,22 +169,30 @@ try{
         await expect(label.locator('.project-description')).toHaveText(project.description);
         expect(project.description).toMatch(/[ぁ-んァ-ヶ一-龯]/);
         const captionBounds=await label.boundingBox(), proseBounds=await label.locator('.project-description').boundingBox();
-        expect(captionBounds.width).toBeLessThanOrEqual(440);
-        if(viewport.width>850){expect(captionBounds.x-(preview.x+preview.width)).toBeGreaterThanOrEqual(31);}else{expect(captionBounds.width).toBeGreaterThan(viewport.width<700?viewport.width-70:430);}
+        expect(captionBounds.width).toBeLessThanOrEqual(viewport.width>950?460:560);
+        if(viewport.width>950){expect(captionBounds.x-(preview.x+preview.width)).toBeGreaterThanOrEqual(30);}else{expect(captionBounds.width).toBeGreaterThan(viewport.width<700?viewport.width-70:430);}
         expect(proseBounds.x).toBeGreaterThanOrEqual(captionBounds.x);
         expect(proseBounds.x+proseBounds.width).toBeLessThanOrEqual(captionBounds.x+captionBounds.width+1);
         expect(proseBounds.y+proseBounds.height).toBeLessThanOrEqual(captionBounds.y+captionBounds.height+1);
         expect(await label.locator('.project-description').evaluate(el=>getComputedStyle(el).fontFamily)).toContain('Yu Mincho');
         const caption=await page.locator('.site-header').boundingBox();const info=await page.locator('.project-info').boundingBox();expect(info.y).toBeGreaterThan(caption.y+caption.height);
-        if(viewport.width>850){expect(info.x).toBeGreaterThanOrEqual(preview.x+preview.width+31);expect(info.x-preview.x-preview.width).toBeLessThanOrEqual(81);}else{expect(info.y).toBeGreaterThanOrEqual(preview.y+preview.height+24);}
-        const anchor=await page.locator('.open-project').boundingBox();const controls=await page.locator('.canvas-controls').boundingBox();
-        expect(anchor.x+anchor.width<=controls.x || anchor.y+anchor.height<=controls.y || anchor.y>=controls.y+controls.height).toBe(true);
+        if(viewport.width>950){expect(info.x).toBeGreaterThanOrEqual(preview.x+preview.width+30);expect(info.x-preview.x-preview.width).toBeLessThanOrEqual(72);}else{expect(info.y).toBeGreaterThanOrEqual(preview.y+preview.height+24);}
+        const cta=page.locator('.open-project');
+        await cta.scrollIntoViewIfNeeded();
+        await expect(cta).toBeInViewport();
+        const anchor=await cta.boundingBox(),dock=await page.locator('.collection').boundingBox();
+        expect(anchor.y).toBeGreaterThanOrEqual(0);
+        expect(anchor.y+anchor.height).toBeLessThanOrEqual(viewport.height);
+        // The mobile collection overlays the viewport: the destination must be
+        // reachable above it, not merely inside the browser's visible rectangle.
+        if(viewport.width<=950)expect(anchor.y+anchor.height).toBeLessThanOrEqual(dock.y);
+        expect(await cta.evaluate(element=>{const b=element.getBoundingClientRect();return element.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));})).toBe(true);
         if(project.id==='myth-making-machine')await screenshot(`experiment-${viewport.width}`);
       }
     }
     await page.locator('#tab-web').click();await ready();await screenshot(`viewport-${viewport.width}`);
     if(viewport.width===390){await page.locator('#tab-web').click();await page.locator('[data-project="gaia-senseware"].project-card').click();await ready('kelp-current');await screenshot('mobile-gaia');}
-    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 12 large previews, no overflow or heading/CTA overlap`);
+    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 13 high-resolution previews, short navigation names, no horizontal overflow and every CTA reachable above the mobile dock`);
   }
 
   const reduced=await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
@@ -197,8 +206,8 @@ try{
   await fallback.goto(url,{waitUntil:'networkidle'});await expect(fallback.locator('.art-fallback')).toBeVisible();await expect(fallback.locator('.motion-toggle')).not.toBeVisible();
   await fallback.locator('.project-card[data-project="quiz-pal"]').click();await expect(fallback.getByRole('heading',{level:2})).toHaveAccessibleName('Quiz Pal');await fallback.close();
   record('Simulated unavailable WebGL and denied storage: fallback image and project navigation work');
-  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(9);await noJs.close();
-  record('JavaScript disabled: all nine destination links remain available');
+  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(11);await noJs.close();
+  record('JavaScript disabled: all 11 destination links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
-}catch(error){results.push({name:'v2.5.13 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.5.13/test-results.json',JSON.stringify({version,artifact:'dist',bundle,testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+}catch(error){results.push({name:'v2.7.0 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
+finally{await writeFile('qa/v2.7.0/test-results.json',JSON.stringify({version,artifact:'dist',bundle,testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}

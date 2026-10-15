@@ -3440,7 +3440,7 @@ function GlslFluidFxCanvas({
 
     let disposed = false
     // Resolve parallel shader compilation before the first visible draw.
-    renderer.compileAsync(scene, camera).then(() => {
+    const compilation = renderer.compileAsync(scene, camera).then(() => {
       if (!disposed) {
         previous = performance.now()
         frameId = requestAnimationFrame(draw)
@@ -3466,12 +3466,16 @@ function GlslFluidFxCanvas({
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mouseleave', resetPointer)
-      scene.remove(mesh)
-      particles?.dispose()
-      geometry.dispose()
-      material.dispose()
-      fluid.dispose()
-      renderer.dispose()
+      // Three polls program readiness asynchronously. Keep those programs alive
+      // until that poll settles, even if a newer scene has already mounted.
+      void compilation.then(() => {
+        scene.remove(mesh)
+        particles?.dispose()
+        geometry.dispose()
+        material.dispose()
+        fluid.dispose()
+        renderer.dispose()
+      })
     }
   }, [audioLevels, effect, externalPointer])
 

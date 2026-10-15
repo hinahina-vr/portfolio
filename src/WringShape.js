@@ -24,7 +24,7 @@ vec3 wringPoint(vec2 p, float gather, float curl, float gripLag) {
   return vec3(x,y,z);
 }`;
 
-export function wringPoint(px,py,gather,curl,gripLag=0){
+export function wringPoint(px,py,gather,curl,gripLag=0,result={}){
   const u=(px+1)*.5,strength=Math.min(1,Math.abs(curl)/30.6);
   const collected=1-Math.pow(Math.max(0,1-gather),.72+.55*(1-u));
   const fold=py*7.2+.68*Math.sin(px*3.7+.6)+.45*py*Math.sin(px*6.1-1);
@@ -38,7 +38,7 @@ export function wringPoint(px,py,gather,curl,gripLag=0){
   const y=(crossY*Math.cos(angle)-crossZ*Math.sin(angle))*compression+collected*(-.08+.17*px-.16*(1-px*px)*(1-strength*.7)+.07*Math.sin(px*3+.8)*strength);
   const z=(crossY*Math.sin(angle)+crossZ*Math.cos(angle))*compression+collected*(.055*Math.sin(3.3*px-.4)+.045*px);
   const x=px*(1-collected*.14)+.035*collected*Math.sin(2.7*px+1)*Math.sin(Math.PI*u);
-  return {x,y,z};
+  result.x=x;result.y=y;result.z=z;return result;
 }
 
 export function gripOffset(elapsed){

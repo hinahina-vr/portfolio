@@ -92,6 +92,7 @@ function createLiquid(){
  const blank=new THREE.DataTexture(new Uint8Array([6,28,32,255]),1,1);blank.needsUpdate=true;
  const scene=new THREE.Scene(),camera=new THREE.Camera();
  const uniforms={ocean:{value:blank},picture:{value:blank},previousPicture:{value:blank},density:{value:blank},velocity:{value:blank},resolution:{value:new THREE.Vector2()},crop:{value:new THREE.Vector2(1,1)},frameRect:{value:new THREE.Vector4()},time:{value:0},emergence:{value:1},opening:{value:0},imageBlend:{value:1},surfaceWet:{value:1},ink:{value:blank}};
+ const flatEmitters=Array.from({length:16},(_,i)=>({x:0,y:0,weight:1,u:(i+.25)/16,v:.02}));
  const pigmentUniforms={previousInk:{value:blank},velocity:uniforms.velocity,picture:uniforms.picture,previousPicture:uniforms.previousPicture,frameRect:uniforms.frameRect,crop:uniforms.crop,resolution:uniforms.resolution,dt:{value:0},time:uniforms.time,feed:{value:0},force:{value:0},imageBlend:uniforms.imageBlend};
  function resize(){if(!renderer)return;renderer.setSize(innerWidth,innerHeight);fluid.resize(innerWidth,innerHeight);uniforms.resolution.value.set(innerWidth,innerHeight);rect=image?.getBoundingClientRect();
   pigmentFlow?.resize(innerWidth,innerHeight);
@@ -153,7 +154,8 @@ function createLiquid(){
   }
   fluid.step(delta);uniforms.density.value=fluid.densityTexture;uniforms.velocity.value=fluid.velocityTexture;
   pigmentUniforms.dt.value=delta;pigmentUniforms.feed.value=visibility;pigmentUniforms.force.value=pressure;
-  pigmentFlow.setEmitters(wring?.emitters||Array.from({length:16},(_,i)=>({x:rect.x+rect.width*(.04+.92*(i+.25)/16),y:rect.bottom,weight:1,v:.02})));
+  if(!wring)for(let i=0;i<flatEmitters.length;i++){const point=flatEmitters[i];point.x=rect.x+rect.width*(.04+.92*(i+.25)/16);point.y=rect.bottom;}
+  pigmentFlow.setEmitters(wring?.emitters||flatEmitters);
   uniforms.ink.value=pigmentFlow.step();
   renderer.setClearColor(0x000000,0);renderer.setRenderTarget(null);renderer.render(scene,camera);
  }

@@ -1,89 +1,102 @@
-# hinahina:// — v2.6.2
+# hinahina:// — v2.7.0
 
-ユーザー自身の GLSL Effects Showcase の描画コードを直接使った、全画面WebGLのポートフォリオです。背景は画像・iframeではなく、元サイトと同じ流体シミュレーションとシェーダーで動きます。
+hinahinaのWebサイト、映像、文章、シェーダー作品を展示するポートフォリオです。本人のGLSL Effects Showcaseの描画コードを使い、流体シミュレーションとシェーダーによる背景を全画面に表示します。
 
-作者名hinahinaとWeb, art & wordsをヘッダーに置き、左に大きな作品画像、右に作品名・展示解説・リンクをまとめた構成です。ヘッダー、作品、下の一覧の左右を共通の幅に揃え、画像と説明の間隔も制限しています。スマホでは画像の下に説明が続きます。メニュー・操作ラベルは英語、展示解説は日本語です。操作部分は枠・面・ホバー反応のあるボタンを維持。最初の作品は「惑星の放課後」で、実画面の画像を不透明に表示し、黒い縁と影は付けません。作品切替では画像を3.2秒で絞って白化し、次の画像へ戻します。文字は独立したイーズアウトで右側から入ります。液体はthree-fluid-fxの速度場を受けるGPU粒子を重ねた色の場で描画し、重力加速と曲面の光沢を付けています。動きを減らす設定では即時に切り替えます。
+PCでは左に16:9の作品画像、右に作品名と日本語の展示解説を配置。英語UIにはHelvetica由来のTeX Gyre Heros、日本語の解説には明朝体を使います。950px以下では画像・説明を縦に並べ、作品一覧と背景操作を画面下部に固定します。説明と外部リンクまでスクロールして読める構成です。最初の作品は「惑星の放課後」です。
 
-## 起動・ビルド
+作品画像の不透明度は80%です。画像面の下地は透明にして、背景WebGLが20%透けるようにしています。通常の切替は背景のフェードアウト・シーン変更・フェードインに続いて、1枚の画像を約3.2秒かけて絞り、白化しながら次の画像へ移行します。タイトル・解説・リンクは位置を動かさず、背景切替開始からゆっくりフェードアウト。画像が開ききる直前から次の文字がフェードインします。液体は画像の画素色、three-fluid-fxの速度場、重力加速、曲面の光沢を使って描画します。
 
-Node.js 22で検証しています。
+このREADMEは現行の仕様と実行方法です。v2.7.0の検証した成果物、実測値、公開状態、未確認範囲は [BRUSHUP-2026-10-15.md](BRUSHUP-2026-10-15.md) を参照してください。
+
+## 作業場所・起動
+
+作業リポジトリは `E:/workspace/selected-works`。成果物、依存関係、試験画像、一時ファイルをEドライブに置きます。PowerShellでは起動前に保存先を明示します。
 
 ```powershell
+Set-Location -LiteralPath 'E:/workspace/selected-works'
+$env:TEMP = 'E:/CodexData/temp'
+$env:TMP = $env:TEMP
+$env:TMPDIR = $env:TEMP
+$env:npm_config_cache = 'E:/CodexData/npm-cache'
+New-Item -ItemType Directory -Force -Path $env:TEMP, $env:npm_config_cache | Out-Null
 npm ci
 npm run dev
 ```
 
-開発サーバー: `http://127.0.0.1:4174/`
+Node.js 22を使用。開発サーバーは `http://127.0.0.1:4174/` です。
 
 ```powershell
 npm run build
 npm run preview
 ```
 
-公開用出力は `dist/`、そのプレビューは `http://127.0.0.1:4173/`。既存のプレビューが起動している場合は再度起動せず、その画面を再読み込みしてください。静的ホスティングには `dist/` 全体を配置します。HTMLのダブルクリックではなくHTTPサーバー経由で利用してください。
+公開用出力は `dist/`、ビルドのプレビューは `http://127.0.0.1:4173/`。同じプレビューが既に起動している場合は再読み込みしてください。HTMLのダブルクリックではなくHTTPサーバー経由で利用します。Windowsのブラウザ試験はインストール済みのChromeを読み取り利用し、試験の出力はリポジトリ内の `qa/`、一般の一時領域は上記Eの設定を使います。
 
-## GitHub Pages
+## 掲載作品
 
-公開先: https://hinahina-vr.github.io/portfolio/
+5カテゴリ・13作品を掲載しています。
 
-リポジトリ: https://github.com/hinahina-vr/portfolio
+- **Web（5）**: 惑星の放課後、GLSL Effects Showcase、一帯一旅 ～中国の街をめぐる旅の地図～、ZEN大学履修プランナー、Quiz Pal。
+- **Visual（2）**: Lilian Kaleido Loom、Botanical Tide。GLSL Effects Showcaseに収録したスタディです。
+- **Words（4）**: ワディーゲストハウス、note、X、GitHub。
+- **Video（1）**: モルトバトルちゃんねる。
+- **Experiments（1）**: 神話製作機械。コンセプトページの `#depth` に直接リンクします。
 
-`main`へのプッシュで `.github/workflows/pages.yml` が依存関係のクリーンインストール、ビルド、Chromiumによる実画面試験を実行し、合格した`dist/`をGitHub Pagesへ配置します。Markdownだけの変更では再公開しません。手動実行も可能です。
+メニュー、見出し、説明、リンク先は `content.js` で管理します。`navTitle` を指定すると下部一覧だけ短い表示名にでき、作品の正式タイトルとアクセシブルな名称は維持されます。画像は3840×2160、一覧のサムネイルは320×180です。PNG原本を `public/assets/` に残し、画面表示には可逆圧縮のWebPを使います。Xは撮影時の接続制限により、実画面の代わりにアカウントカードであることを明示しています。
 
-相対アセットパスとハッシュによる作品URLを使うため、ローカルのルートパスと公開先の`/portfolio/`で同じビルドを利用できます。公開成果物の版とコミットは `build.json` に記録されます。
+## 操作と切替
 
-公開後の確認: `node scripts/check-deployment.mjs https://hinahina-vr.github.io/portfolio/`。結果とPC・スマホ幅の画面を `qa/deployment/` に保存します。詳細は `DEPLOYMENT.md`。
+- 上部のWeb / Visual / Words / Video / Experimentsでカテゴリを選択し、下部のサムネイルで作品を選びます。狭い画面の一覧は横にスワイプできます。選択済みの作品を再び押しても演出や履歴を再作成しません。
+- 自動送りの待機時間は通常8秒。ポインター、キー、スクロールなどの操作を始めると16秒になり、20秒操作がなければ通常の8秒へ戻ります。背景設定、没入表示、非表示タブ、オープニングや背景切替中は送りを待機します。
+- 下部の停止アイコンは背景・液体・自動送りをまとめて停止します。切替中の停止は選択先を確定し、停止中の手動選択は静止切替になります。停止状態はブラウザに保存され、次の起動時にも適用されます。OSの動きを減らす設定でも静止表示・自動送り停止になります。
+- 作品画像と「Visit website」などのリンクから、掲載先を新しいタブで開きます。
+- 背景上のマウス・タッチ操作で流体や光が反応します。設定アイコンから背景3種、光量、動く速度を調整できます。開いた直後のフォーカスはArtworkに移ります。
+- 没入表示で操作画面を隠せます。Escapeで設定を閉じる、または没入表示から戻り、元の操作ボタンへフォーカスを返します。
+- カテゴリタブは左右矢印・Home・Endでも選択できます。「Skip to work」は作品を変えずに本文へ移動します。
+- WebGLが利用できない場合は静止背景を表示します。JavaScript無効時は重複する収録作品を除いた11件のリンクを表示します。
 
-## 掲載したWebサイト
+## GitHub Pagesへの公開
 
-- 惑星の放課後 — https://gaia-senseware.pages.dev/
-- GLSL Effects Showcase — https://glsl-effects-showcase.pages.dev/
-- 一帯一旅 ～中国の街をめぐる旅の地図～ — https://chinameng.pages.dev/
-- Quiz Pal — https://hinahina-vr.github.io/quiz-pal/
+公開先: [hinahina://](https://hinahina-vr.github.io/portfolio/)
+リポジトリ: [hinahina-vr/portfolio](https://github.com/hinahina-vr/portfolio)
 
-VisualはGLSL Effects Showcase内のスタディです。Experimentsには「神話製作機械」を掲載し、コンセプトページの該当箇所（https://gaia-senseware.pages.dev/concept/#depth）へ直接リンクしています。
+`main`へのプッシュで `.github/workflows/pages.yml` が動きます。通常のCIは依存関係のインストール、ビルド、`tests/smoke.mjs` による軽量なChromium確認を行い、成功した `dist/` をGitHub Pagesへ配置します。Markdownだけの変更では再公開しません。
 
-## 編集
+全件のブラウザ試験と動作中のGPU画像回帰は、Actionsの手動実行で `full_tests` を有効にしたときだけ追加されます。日常の公開に重い全件試験を必須化しません。相対アセットパスと `#works/カテゴリ/作品ID` を使うため、ローカルと `/portfolio/` で同じビルドを使用できます。公開時に生成する `build.json` に版とコミットを記録します。
 
-- `research/portfolio-wording/NOTES.md`: 調査した6つの実サイト、観察内容、採用した構成とコピーの根拠。
-- `content.js`: 作品名、任意の副題、作品の形式（medium）、展示解説、画像、外部URL、カテゴリ、背景作品の対応。
-- `public/assets/`: 公開サイトから撮影した掲載画像。
-- `app.js`: 作品の選択、カテゴリ、履歴、メニュー、背景の操作。
-- `styles.css`: 透明なUI、全画面背景、レスポンシブ表示。
-- `src/Background.jsx`: 元サイトの描画コンポーネントを接続する部分。
-- `src/reference/`: ユーザーの既存サイトからコピーした描画ソース。元ソースの保管場所は `PROVENANCE.md`。
+## 手動検証
 
-作品追加時は `content.js` の該当 `projects` に項目を追加します。Webの作品はIndexメニューにも自動反映されます。
-
-## 操作
-
-- 上部のWeb / Visual / Words / Video / Experiments、またはIndexからカテゴリを切り替え。
-- 選択中のカテゴリ内で8秒ごとに作品が横へスライドして切り替わります。手動選択後は8秒数え直します。
-- 下部のサムネイルから作品を選択。スマホでは横にスワイプできます。
-- 一覧横のPause slideshow / Play slideshowで自動切替を停止・再開。停止状態は再読込後も保持します。
-- Index・背景設定・没入表示・非表示タブでは切替を待機。動きを減らす設定では自動切替を停止した状態で開始します。
-- 「Visit website」または「Open showcase」または大きなスクリーンショットをクリックすると、実サイトを新しいタブに表示。
-- 背景上のマウス・タッチ操作で、元サイトと同じ光の反応。
-- 右下で背景設定・停止・操作画面を隠すモードを切り替え。
-- 背景設定では3つの作品、光の強さ、動く速度を変更可能。
-- Escapeでメニューや設定を閉じ、没入表示から戻れます。
-- 停止状態はブラウザーに保存。OSの動きを減らす設定を尊重します。
-- WebGL利用不可時は静止画像。JavaScript無効時も4サイトへのリンクを表示します。
-
-## 検証・保管
+Eの環境変数を設定した同じシェルで実行します。ここに挙げるコマンドは検証手段であり、最新成果物がすべて合格したという意味ではありません。実施結果は [今回の検証記録](BRUSHUP-2026-10-15.md) に集約します。
 
 ```powershell
 npm run build
+node tests/smoke.mjs
 npm test
+node tests/interaction.mjs
+node scripts/check-solid-photo.mjs --quick
 ```
 
-Windowsの実Chromeを使い、ビルドした `dist/` を検証します。掲載サイトを開く試験にはネット接続が必要です。結果は `qa/v2.5.0/test-results.json`、画像は `qa/v2.5.0/`。確認範囲は `VERIFICATION.md` に記録。
+- `tests/smoke.mjs`: 5カテゴリ、画像の読み込み、80%の表示、スマホ幅の一覧操作、選択URLの再読み込み。結果は `qa/smoke/`。
+- `npm test`: ビルドした `dist/` を対象に全13作品、掲載先の新規タブ、画像、キーボード操作、画面幅、モバイル固定メニュー上でのリンク到達性、静止表示などを確認します。掲載先を開くためネット接続が必要です。結果は `qa/v2.7.0/`。
+- `tests/interaction.mjs`: 一時停止、同じ作品の再選択、設定フォーカス、連打、履歴、自動送りの16秒・20秒条件を実時間で確認する手動試験。通常は専用のローカルサーバーで `dist/` を読み、結果を `qa/interaction-2026-10-15/` に保存します。既存プレビューを使う場合は `INTERACTION_URL`、結果先は `INTERACTION_OUT` を指定できます。CIには追加していません。
+- `scripts/check-solid-photo.mjs --quick`: 動作中のWebGLから実際の画素を読み、作品画像の単色化や不正な数値を確認します。
+- `scripts/check-opening-behavior.mjs`: 4173のプレビューで初回登場、画像の遅延、操作・動きを減らす設定・保存した停止状態、途中の画面リサイズを確認します。結果は `qa/v2.7.0/opening-behavior/`。
 
-4173のプレビュー起動中に `node scripts/check-composition.mjs` で画面の配置、`node scripts/check-clean-ui.mjs` で英語UI・見出し位置と装飾の除去、`node scripts/check-buttons.mjs` でボタンの表示を再確認できます。
+静止画と数値を記録し、動画は録画しません。実Chromeによる確認と物理スマホ・Safariなどの未確認範囲を区別して記録します。第三者ライブラリのライセンスは `public/licenses/`、元描画ソースの由来は `src/reference/PROVENANCE.md` にあります。
 
-4173のプレビュー起動中に `node scripts/verify-paused-controls.mjs` で停止中の設定変更・リサイズを追加検証できます。`node scripts/final-captures.mjs` は現在のプレビューから各画面幅のスクリーンショットを保存します。
+## 主な編集箇所
 
-v1の主要ソースと画面は `qa/v1-before-immersive/` に保存済み。第三者ライブラリのライセンスは `public/licenses/` に同梱しています。
+- `content.js`: 作品名、短い一覧名、副題、展示解説、画像、リンク、背景の対応。
+- `app.js`: 作品選択、カテゴリ、URL履歴、停止と自動送り、設定、フォーカス。
+- `styles.css`: 画像と文字の配置、書体、透過、固定モバイルメニュー。
+- `src/Background.jsx`、`src/reference/`: 元サイトのWebGL背景と接続処理。
+- `src/PanelTransition.js`、`src/WringShape.js`: 絞りの演出と形状。布の自己衝突を解く物理ソルバーではなく、握りのずれ・くびれ・しわ・たわみを使う演出モデルです。
+- `src/LiquidSurface.js`、`src/Drainage.js`、`src/PigmentFlow.js`: 画像の表面、排水位置、画素色の液体。
+- `src/CaptionFade.js`、`src/Entrance.js`: 位置を動かさない文字のフェードと初回登場。
+
+## 旧バージョンの記録
+
+以下は当時の実装・検証記録です。現在の機能、出力パス、必須試験を定義するものではありません。
 
 v2.2.0では実サイト6件の観察をもとに作者名・作品説明・表示階層を見直しました。v2.2.1では、作品の形式と短い英文解説を展示キャプションとして組み直しました。`node scripts/check-portfolio-identity.mjs` で作者名、日本語の解説、英語の操作ラベル、リンク先に合うボタン表記を回帰確認できます。
 
