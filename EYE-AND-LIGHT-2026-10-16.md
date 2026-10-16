@@ -41,4 +41,12 @@ Visualの先頭へ「眼と光 — EYE & LIGHT」を追加。4K・16:9の実WebG
 
 ## 公開記録
 
-実ブラウザ試験と公開後確認が完了した結果を追記する。
+公開コミット: `22fc8c7c877baaccc8c70aeb3d3d515e2b98fb74` / v2.7.1。
+
+GitHub Actions [38877264338](https://github.com/hinahina-vr/portfolio/actions/runs/38877264338) 成功。build 53秒、deploy 17秒。通常CIのフル試験・GPU試験は従来どおり手動指定時のみ。
+
+公開URLを対象に `node tests/eye-and-light.mjs https://hinahina-vr.github.io/portfolio/` を実行し、9/9 PASS、エラー0。今回はEnter artworkを実際にクリックして新しいタブの専用ページを開き、実3Dと映像の途中再生まで確認した。4画面幅、通常の絞りトランジション、映像の206部分配信、メニュー・再生・停止・視点・ドラッグ・リセット・シーク・3D復帰・再読込・ライセンス到達性を確認。
+
+公開 `build.json` の版・コミットが一致。掲載側のJS/CSS、4K WebP、作品のHTML/CSSと実装4ファイル、計9ファイルのSHA-256が検証済みのローカルdistと完全一致。取り込んだ作品ファイルにはGitの改行変換を適用せず、検証した原本のバイトを保っている。
+
+公開後記録: `qa/eye-and-light-20261016/public/{results,build-verification}.json`。静止画は同フォルダーの `portfolio-rendered.png`、`portfolio-{1440,768,390,320}.png`、`artwork.png`、`artwork-mobile.png`。公開後の画面も目視した。
