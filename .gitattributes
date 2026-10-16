@@ -11,3 +11,5 @@
 *.yml text eol=lf
 *.jpg binary
 *.png binary
+# Keep the verified standalone artwork byte-for-byte identical.
+public/works/eye-and-light/** -text

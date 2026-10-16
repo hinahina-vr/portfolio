@@ -1,0 +1,6 @@
+Three.js 0.186.0 — MIT License.
+The exact license is included at vendor/three/LICENSE.txt.
+Only the required ES module import closure is vendored. No external CDN is used.
+
+Eye and room image generation records: assets/image-generation.json.
+No public redistribution license is granted for the project-specific eye/room artwork.

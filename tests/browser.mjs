@@ -12,7 +12,7 @@ const bundle=(await readFile('dist/index.html','utf8')).match(/src="([^"]+\.js)"
 
 const server=spawn(process.execPath,['scripts/serve.mjs','dist','4187'],{stdio:'pipe',windowsHide:true});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);server.once('exit',code=>{if(code)reject(new Error(`Server: ${code}`));});});
-await mkdir('qa/v2.7.0',{recursive:true});
+await mkdir('qa/v2.7.1',{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true,args:process.platform==='linux'?['--enable-unsafe-swiftshader']:[]});
 const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
 const results=[],errors=[],url='http://127.0.0.1:4187/';
@@ -20,7 +20,7 @@ const record=(name,details='')=>{results.push({name,status:'PASS',details});cons
 const hash=buffer=>createHash('sha256').update(buffer).digest('hex');
 function pixelDifference(a,b){const left=PNG.sync.read(a),right=PNG.sync.read(b);expect(left.width).toBe(right.width);expect(left.height).toBe(right.height);let max=0,changed=0;for(let i=0;i<left.data.length;i++){const delta=Math.abs(left.data[i]-right.data[i]);max=Math.max(max,delta);if(delta>2)changed++;}return{max,changed};}
 const artImage=()=>page.screenshot({clip:{x:650,y:170,width:650,height:380}});
-const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.7.0/${name}.png`,fullPage:true});};
+const screenshot=async name=>{await page.locator('.work-content').evaluate(el=>Promise.all(el.getAnimations().map(animation=>animation.finished)));return page.screenshot({path:`qa/v2.7.1/${name}.png`,fullPage:true});};
 page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('response',response=>{if(response.url().startsWith(url)&&response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
@@ -102,7 +102,7 @@ try{
   await page.goto(url);await expect(page.locator('#work-panel')).toHaveAttribute('data-project','gaia-senseware');
   record('Project-specific URLs, browser Back and reload preserve selection; Web tab and root URL open Gaia');
 
-  await page.locator('#tab-visual').click();await expect(page.locator('.project-card')).toHaveCount(2);
+  await page.locator('#tab-visual').click();await expect(page.locator('.project-card')).toHaveCount(categories.visual.projects.length);
   await page.locator('.project-card[data-project="botanical-tide"]').click();await ready('kelp-current');
   await expect(page.getByRole('heading',{level:2})).toHaveAccessibleName('Botanical Tide');
   await page.locator('#tab-experiments').click();await expect(page.locator('.project-card')).toHaveCount(1);await ready('fluid-chrome-stream');
@@ -192,7 +192,7 @@ try{
     }
     await page.locator('#tab-web').click();await ready();await screenshot(`viewport-${viewport.width}`);
     if(viewport.width===390){await page.locator('#tab-web').click();await page.locator('[data-project="gaia-senseware"].project-card').click();await ready('kelp-current');await screenshot('mobile-gaia');}
-    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 13 high-resolution previews, short navigation names, no horizontal overflow and every CTA reachable above the mobile dock`);
+    record(`Responsive ${viewport.width}×${viewport.height}: full-screen WebGL, portfolio identity in the header, all 14 high-resolution previews, short navigation names, no horizontal overflow and every CTA reachable above the mobile dock`);
   }
 
   const reduced=await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
@@ -206,8 +206,8 @@ try{
   await fallback.goto(url,{waitUntil:'networkidle'});await expect(fallback.locator('.art-fallback')).toBeVisible();await expect(fallback.locator('.motion-toggle')).not.toBeVisible();
   await fallback.locator('.project-card[data-project="quiz-pal"]').click();await expect(fallback.getByRole('heading',{level:2})).toHaveAccessibleName('Quiz Pal');await fallback.close();
   record('Simulated unavailable WebGL and denied storage: fallback image and project navigation work');
-  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(11);await noJs.close();
-  record('JavaScript disabled: all 11 destination links remain available');
+  const noJs=await browser.newPage({javaScriptEnabled:false});await noJs.goto(url);await expect(noJs.locator('noscript a')).toHaveCount(12);await noJs.close();
+  record('JavaScript disabled: all 12 destination links remain available');
   expect(errors).toEqual([]);record('No runtime, shader compile, or local asset request errors');
-}catch(error){results.push({name:'v2.7.0 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
-finally{await writeFile('qa/v2.7.0/test-results.json',JSON.stringify({version,artifact:'dist',bundle,testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
+}catch(error){results.push({name:'v2.7.1 browser validation',status:'FAIL',details:error.stack});await screenshot('failure').catch(()=>{});console.error(error);process.exitCode=1;}
+finally{await writeFile('qa/v2.7.1/test-results.json',JSON.stringify({version,artifact:'dist',bundle,testedAt:new Date().toISOString(),browser:await browser.version(),results,errors},null,2));await browser.close();server.kill();}
