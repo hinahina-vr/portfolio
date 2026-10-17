@@ -27,4 +27,10 @@ Windows Chrome155で、アバター回帰6項目PASS・エラー0。初期モデ
 
 実スクリーンショットを目視した。モバイルはWindows Chromeのタッチ・画面設定による検証で、物理iOS/Android端末は未確認。サイト全体のFPSの評価ではない。通常CIは軽量smokeのまま。
 
-公開確認はデプロイ完了後に追記する。静止画・実行記録は `qa/nijigen-dohai-1-32-0-20261017/`。
+公開コミット: `39724d4404c5b909c8339aa8d2d365ffb60e6900`。
+
+[GitHub Actions 39033684137](https://github.com/hinahina-vr/portfolio/actions/runs/39033684137) 成功。build53秒・deploy12秒。公開build.jsonは2.7.3/上記コミットと一致。掲載JS/CSS・新4K画像、作品HTML/CSS・新アバター・肖像・切替ロジック・NOTICEなど14ファイルの公開データとローカルdistのSHA-256がすべて一致した。
+
+公開URLに対してアバター回帰6項目と既存統合10項目を再実行し、全項目PASS・エラー0。実際に掲載画面のEnter artworkから作品を開き、両モデルの切替、初回モデル読み込み、通信失敗と再試行、歩行/ジャンプ/瞳への進入と帰還、7絵柄、旧サンプルのシーク、スマホの同時タッチと再読込まで確認。公開版の掲載画面・新アバターとモバイル画面を目視した。
+
+公開後記録は `avatars-public/results.json`、`public/results.json`、`public/build-verification.json`。モバイル試験とパフォーマンス評価の限界は上記の通り。静止画・実行記録は `qa/nijigen-dohai-1-32-0-20261017/`。
