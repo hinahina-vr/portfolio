@@ -4,7 +4,7 @@ import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {categories} from '../content.js';
 const external=process.argv[2],base=external||'http://127.0.0.1:4191/';
-const out=(process.env.QA_DIR||'qa/nijigen-dohai-1-32-0-20261017')+'/'+(external?'public':'local');await mkdir(out,{recursive:true});
+const out=(process.env.QA_DIR||'qa/nijigen-dohai-1-32-1-20261018')+'/'+(external?'public':'local');await mkdir(out,{recursive:true});
 const project=categories.visual.projects.find(p=>p.id==='eye-and-light');
 const results=[],errors=[];let server,browser,bundle;const styleHashes=[];
 const pass=name=>{results.push({name,status:'PASS'});console.log('PASS',name);};

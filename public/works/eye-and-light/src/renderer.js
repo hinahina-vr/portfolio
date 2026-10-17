@@ -13,6 +13,7 @@ import {portraitStyle,PORTRAIT_STYLES,styleFrame} from './styles.js';
 import {gazeForAvatar,followSphereYaw,followPupil,eyeProximity,approachDistortion} from './gaze.js';
 import {INSTALLATION,createInstallation} from './installation.js';
 import {AvatarWalker} from './avatar.js';
+import {AvatarReplacement} from './avatar-replacement.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {meditationMotion,meditationCamera,meditationRoomCamera,meditationFov} from './motion.js';
 const vertex=`varying vec3 point;varying vec2 uv0;void main(){point=position;uv0=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
@@ -178,35 +179,37 @@ export class MeditationRenderer{
   this.renderingPrepared=true;this.preparedPrograms=renderer.info.programs.length;onProgress(98,'準備を仕上げています');
  }
 
- // Keep loading transactional: the current visitor survives a failed replacement.
+ // The replacement owns visitor resources; the renderer owns immersion and GPU state.
  async selectAvatar(id,onProgress=()=>{}){
   const config=avatarById(id);if(!config)throw Error('Unknown avatar');
   if(this.avatarChanging||id===this.avatar.avatarId)return false;
-  const old=this.avatar,manual=this.manualImmersion,contact=this.contactImmersion,target=this.renderer.getRenderTarget();
-  this.avatarChanging=true;old.clear();
-  const next=new AvatarWalker(this.scene,this.renderer.domElement,()=>false);next.root.visible=false;
+  const manual=this.manualImmersion,contact=this.contactImmersion,target=this.renderer.getRenderTarget();
+  this.avatarChanging=true;this.avatar.clear();
+  const replacement=new AvatarReplacement(this.avatar,this.scene,this.renderer.domElement);
   try{
-   onProgress(5,'アバターを読み込んでいます');
-   await next.prepare(e=>{if(e.lengthComputable)onProgress(5+65*e.loaded/e.total,'アバターを読み込んでいます');},config);
-   next.position.copy(old.position);next.position.y=INSTALLATION.floorY;next.root.quaternion.copy(old.root.quaternion);
-   for(const key of ['yaw','pitch','distance','fpsYaw','fpsPitch','firstPerson'])next[key]=old[key];
-   next.cameraPosition=old.cameraPosition?.clone()||null;next.root.updateMatrixWorld(true);next.groundFeet();next.restModelY=next.vrm.scene.position.y;
-   old.root.visible=false;next.root.visible=true;this.avatar=next;this.contactImmersion=emptyContactImmersion();
-   // Exercise both opaque and faded materials before exposing the new visitor.
+   await replacement.prepare(config,onProgress);
+   this.avatar=replacement.activate();this.contactImmersion=emptyContactImmersion();
    onProgress(78,'アバターの光を準備しています');
-   for(const fade of [0,.5]){
-    next.root.visible=true;next.fadeForFirstPerson(fade);
-    this.renderer.setRenderTarget(this.composer.writeBuffer);
-    await this.renderer.compileAsync(this.scene,this.camera);
-    this.renderer.setRenderTarget(target);this.manualImmersion=fade;this.render(this.time,{auto:false});
-    await new Promise(resolve=>requestAnimationFrame(resolve));
-   }
-   this.contactImmersion=contact;this.manualImmersion=manual;next.fadeForFirstPerson(this.immersionAmount);this.render(this.time,{auto:false});
-   next.canInput=old.canInput;old.dispose();this.preparedPrograms=this.renderer.info.programs.length;
+   await this.prepareAvatarRendering(target);
+   this.contactImmersion=contact;this.manualImmersion=manual;
+   this.avatar.fadeForFirstPerson(this.immersionAmount);this.render(this.time,{auto:false});
+   replacement.commit();this.preparedPrograms=this.renderer.info.programs.length;
    onProgress(100,'アバターを切り替えました');return true;
   }catch(error){
-   this.avatar=old;next.dispose();this.contactImmersion=contact;this.manualImmersion=manual;old.root.visible=this.view==='walk'&&this.immersionAmount<1;this.render(this.time,{auto:false});throw error;
+   this.avatar=replacement.previous;replacement.rollback();this.contactImmersion=contact;this.manualImmersion=manual;
+   this.avatar.root.visible=this.view==='walk'&&this.immersionAmount<1;this.render(this.time,{auto:false});throw error;
   }finally{this.renderer.setRenderTarget(target);this.avatarChanging=false;}
+ }
+
+ // Exercise opaque and faded materials while the avatar loader owns the screen.
+ async prepareAvatarRendering(target){
+  for(const fade of [0,.5]){
+   this.avatar.root.visible=true;this.avatar.fadeForFirstPerson(fade);
+   this.renderer.setRenderTarget(this.composer.writeBuffer);
+   await this.renderer.compileAsync(this.scene,this.camera);
+   this.renderer.setRenderTarget(target);this.manualImmersion=fade;this.render(this.time,{auto:false});
+   await new Promise(resolve=>requestAnimationFrame(resolve));
+  }
  }
 
  setTime(t){const m={...meditationMotion(t),...roomMotion(t)};this.time=t;this.uniforms.ceremonyPhase.value=m.ceremonyPhase;if(this.autoStyle)this.updateStyleCycle(t);const weight=test=>(test(this.uniforms.paintStyle.value)?1:0)*(1-this.uniforms.styleMix.value)+(test(this.uniforms.nextPaintStyle.value)?1:0)*this.uniforms.styleMix.value;this.graphicAmount=weight(k=>k===2);this.pixelAmount=weight(k=>k>=3);this.lightAmount=weight(k=>k===2||k===5);if(this.bloom)this.bloom.strength=.42-.31*this.graphicAmount-.32*this.pixelAmount;for(const k of ['phase','breath','blink','pupilScale'])this.uniforms[k].value=m[k];this.uniforms.beat.value=m.heartbeat;this.uniforms.pupilOffset.value.set(m.pupilX,m.pupilY);this.uniforms.proximity.value=this.view==='walk'?this.proximity:0;if(this.surroundingLight){this.surroundingLight.uniforms.amount.value=this.view==='walk'?this.contactImmersion.portal:0;this.surroundingLight.uniforms.nearWarp.value=this.view==='walk'?approachDistortion(this.avatar.position):0;this.surroundingLight.enabled=this.surroundingLight.uniforms.amount.value>0||this.surroundingLight.uniforms.nearWarp.value>0;if(this.surroundingLight.uniforms.amount.value===0)this.surroundingLight.portalOrigin=null;const full=this.surroundingLight.uniforms.amount.value>=1;this.scenePass.enabled=!full;this.bloom.enabled=!full;}if(this.view==='walk'&&this.avatar?.ready){this.uniforms.gaze.value.copy(this.trackedGaze);this.sphere.rotation.y=this.eyeYaw;}else{this.uniforms.gaze.value.set(m.gazeX,m.gazeY);this.sphere.rotation.y=0;}this.installation?.update(m);return m;}

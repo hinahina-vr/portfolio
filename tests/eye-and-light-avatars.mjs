@@ -1,10 +1,10 @@
-// Hosted integration regression for the supplied 1.32.0 avatar selector.
+// Hosted integration regression for the supplied 1.32.1 avatar selector.
 import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';import {chromium} from '@playwright/test';import {spawn} from 'node:child_process';
 const external=process.argv[2],base=external||'http://127.0.0.1:4193/';
-const version=JSON.parse(await fs.readFile('package.json','utf8')).version,qa=path.resolve(`${process.env.QA_DIR||'qa/nijigen-dohai-1-32-0-20261017'}/avatars-${external?'public':'local'}`);await fs.mkdir(qa,{recursive:true});
+const version=JSON.parse(await fs.readFile('package.json','utf8')).version,qa=path.resolve(`${process.env.QA_DIR||'qa/nijigen-dohai-1-32-1-20261018'}/avatars-${external?'public':'local'}`);await fs.mkdir(qa,{recursive:true});
 let server;
 if(!external){server=spawn(process.execPath,['scripts/serve.mjs','dist','4193'],{stdio:'pipe',windowsHide:true});await new Promise((r,j)=>{server.stdout.once('data',r);server.once('error',j);});}
-const url=new URL('works/eye-and-light/?style=cel&cycle=off',base).href,browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--disk-cache-dir=E:/CodexData/temp/portfolio-avatar-slots-qa']}),report={version,artworkVersion:'1.32.0',url,complete:false,checks:[]},errors=[];
+const url=new URL('works/eye-and-light/?style=cel&cycle=off',base).href,browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--disk-cache-dir=E:/CodexData/temp/portfolio-avatar-slots-qa']}),report={version,artworkVersion:'1.32.1',url,complete:false,checks:[]},errors=[];
 const ready=p=>p.waitForFunction(()=>window.eyeAndLight?.ready&&meditationRenderer.avatar.ready&&document.querySelector('#preloader').hidden,null,{timeout:90000});
 const open=async p=>{await p.click('#avatar-toggle');await p.waitForFunction(()=>document.querySelector('#avatar-menu').open);};
 const select=async(p,id)=>{await open(p);await p.click('[data-avatar='+id+']');await p.waitForFunction(id=>meditationRenderer.avatar.avatarId===id&&!meditationRenderer.avatarChanging&&document.querySelector('#avatar-loading').hidden,id,{timeout:90000});};
@@ -35,6 +35,20 @@ for(const id of ['ferret','ginkgo']){
  report.journeys.push({id,...rendering});await p.screenshot({path:qa+'/journey-'+id+'.png'});await p.keyboard.press('p');
 }
 report.checks.push('Both avatars: actual WASD, Space, pupil entry and S return to next art, F enter/exit; switching while inside preserves contact and return; sub-slot first approach allocates no programs/textures');
+// Fail after real GPU preparation to verify rollback after the staged model was activated.
+const stable=await snapshot(p);
+await p.evaluate(()=>{
+ const r=meditationRenderer;window.savedAvatarWarmup=r.prepareAvatarRendering;
+ r.prepareAvatarRendering=async function(...args){await savedAvatarWarmup.apply(this,args);throw Error('Injected post-warmup failure');};
+});
+await open(p);await p.click('[data-avatar=ferret]');await p.locator('#avatar-error').waitFor({state:'visible'});
+const restored=await snapshot(p);assert.equal(restored.id,stable.id);assert.equal(restored.models,1);assert.deepEqual(restored.position,stable.position);assert.equal(restored.textures,stable.textures);assert.equal(restored.geometries,stable.geometries);
+assert.equal(await p.evaluate(()=>meditationRenderer.avatarChanging),false);assert(await p.locator('#avatar-loading').isHidden());
+assert.equal(await p.evaluate(()=>meditationRenderer.renderer.getRenderTarget()),null);
+await p.evaluate(()=>{meditationRenderer.prepareAvatarRendering=savedAvatarWarmup;});
+await p.click('[data-avatar=ferret]');await p.waitForFunction(()=>meditationRenderer.avatar.avatarId==='ferret'&&!meditationRenderer.avatarChanging,null,{timeout:90000});
+await p.waitForFunction(()=>document.querySelector('#avatar-loading').hidden);await select(p,'ginkgo');
+report.checks.push('Injected failure after real GPU warmup restores the previous visitor, camera position, render target and per-model GPU resources; UI retry succeeds');
 report.resources=[];for(const id of ['ferret','ginkgo','ferret','ginkgo']){await select(p,id);let a=await snapshot(p);assert.equal(a.models,1);report.resources.push(a);}assert.equal(report.resources[0].textures,report.resources[2].textures);assert.equal(report.resources[1].textures,report.resources[3].textures);assert.equal(report.resources[0].geometries,report.resources[2].geometries);assert.equal(report.resources[1].geometries,report.resources[3].geometries);report.checks.push('Four repeated switches leave one visitor and stable per-model GPU texture/geometry counts');
 // Native keyboard accessibility: open, Escape, and selecting the current slot do not reload it.
 await p.locator('#avatar-toggle').focus();await p.keyboard.press('Enter');await p.waitForFunction(()=>document.querySelector('#avatar-menu').open);await p.keyboard.press('Escape');await p.waitForFunction(()=>!document.querySelector('#avatar-menu').open);const requests=models.length;await select(p,'ginkgo');assert.equal(models.length,requests);await p.reload();await ready(p);assert.equal((await snapshot(p)).id,'ginkgo');report.checks.push('Keyboard Enter/Escape and current-slot no-op work; reload always starts at the requested new default');
