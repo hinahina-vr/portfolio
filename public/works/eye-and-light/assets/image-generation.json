@@ -11,5 +11,110 @@
   "room": {
     "file": "stardust.png",
     "prompt": "Use case: stylized-concept. Asset type: high-resolution luminous LED wall texture for a 3D immersive meditation room. Create a flat front-facing seamless-looking full-bleed artwork, 1536x1024 landscape. Thousands of irregular tiny silver-white and pastel lilac stars and delicate four-point sparkles, layered shimmering bokeh and faint pink light dust, transparent wispy soft lavender-blue nebula clouds, fine flowing luminous filaments and sparse large soft starbursts. Dreamlike refined high-end immersive digital art, calm ethereal luminous lilac atmosphere, intricate depth and a balanced nonuniform composition. Dominant mid lavender/periwinkle with pale violet white highlights, subtle cyan and rose accents. The artwork itself fills the entire image edge to edge. No room, no perspective, no architectural lines, no grid, no globe, no characters, no faces, no eyes, no text, no logo, no border. This is a texture map, not a picture of the installation."
+  },
+  "activePortraitSet": [
+    "face-open-v7.png",
+    "face-closed-v7.png"
+  ],
+  "faceV6": {
+    "version": "1.6.0",
+    "method": "built-in image_gen",
+    "references": [
+      "eye-open.png",
+      "user reference codex-clipboard-445c6767-4ff7-4586-b3fd-e3c3429ec4a6.png"
+    ],
+    "files": [
+      "face-open-v6.png",
+      "face-closed-v6.png"
+    ],
+    "openPrompt": "Use case: identity-preserve. Asset type: square anime face texture for an existing interactive LED sphere art website. Input 1 is the current eye artwork to edit. Input 2 is the user's original installation reference, for framing and gentle cute facial proportions only; do not include the room, sphere, text, person or installation in the output. Change the input 1 extreme single-eye closeup into a recognizable adorable moe anime girl's face cropped from soft lilac bangs down through a tiny nose and small sweet smiling mouth, as in the face on the sphere of reference 2. It must look warm and kawaii, not frightening, not a solitary eyeball. Keep the soft lavender/white/pink pastel identity, glossy luminous violet starry iris, delicate eyelashes and fine polished anime illustration. One visible eye is upper-right of the square, centered at approximately x=.61 y=.39, about .32 image width and .28 height. The other eye is naturally hidden under side-swept lavender bangs at the left edge, like the original reference. Show a cute small nose near x=.43 y=.64 and a tiny gently smiling mouth near x=.43 y=.76, soft blush on cheeks. Relaxed kind expression, eye looking forward. The entire lower face through the mouth must be visible with breathing room. Continuous pale lilac skin and flowing hair fill the square; no cutout, head silhouette, chin outline, neck, torso, severed head, pedestal or eyeball object. Face features clearly recognizable but not photorealistic, not uncanny, not dramatic or seductive. Subtle luminous stardust throughout rather than washing out nose or mouth. Produce only a flat square 2D texture image, no border, no text, no watermark. Preserve detailed crisp eye rendering, reduce eye dominance so nose and mouth create an expressive cute face.",
+    "closedEditPrompt": "Use case: identity-preserve. This is the open-eye texture of an interactive anime face. Produce the precisely matching closed-eye texture. Change ONLY the visible eye in the upper right: close its eyelids completely into a soft peaceful friendly curved eyelash line at approximately y=.43, matching her sweet smiling mouth. The iris and white of the eye must be completely hidden by the opaque closed eyelid. Keep the same cute moe girl identity and exact framing, all hair strands, nose, small open smiling mouth, blush, chin, face size, positions, lavender/pink colors, stars and every area outside that one eye region unchanged. No face repositioning or scaling, no new features. Both texture images must align for animation. Preserve the same square size and high quality. Output only this flat 2D texture, no text, no border, no new objects.",
+    "storage": "Project assets on E; tool output generated_images is a junction to E."
+  },
+  "faceV7": {
+    "method": "built-in image_gen",
+    "version": "1.7.0",
+    "open": "Use case: style-transfer. Asset: square face texture for an anime LED sphere. Input image is edit target for composition only, NOT a style reference. Completely redraw into extremely cute youthful chibi moe 2D TV anime CEL SHADING with clean solid outlines, broad flat colors and just one hard-edged shadow tone. Wholesome adorable innocent round face, plump rounded cheeks, tiny simple nose mark, tiny happy open smile. Soft chunky pale lilac bangs cover the left eye. One huge ROUND gentle violet anime eye on image right, short simple upper lashes, 2 clean white highlights and a simple star, no anatomical iris fibers. Composition invariant: visible iris center at x65% y40%, iris half widths about13% and12% of square, white eye extends x46%..85%,y28%..52%; nose near38%,62%; mouth at43%,74%. Face and bangs fill whole square with no neck/body. Redraw hair as broad clean cel shaded shapes with just a few flat star motifs. Pastel lilac, pink and cream. Make the midface short and cheek/chin rounded. NO realism whatsoever: no skin texture, pores, wet lips, glossy skin, nose volume, realistic lighting, soft airbrushing, painterly rendering, individual hair strands, galaxy noise, glitter texture over skin, mature makeup, thin long face, menacing gaze, 3D render, text, room, sphere, border. This must clearly look like a cute cartoon anime drawing, not realistic fantasy portrait. Keep face smile very small and sweet.",
+    "closed": "Use case: precise-object-edit. Edit target: the provided cute flat cel shaded anime face texture. Create its CLOSED-EYE blink partner. Change ONLY the visible right eye: gently fully closed eyelid, a single clean curved dark-lilac lash line approximately from x54% y44% to x88% y44%, with center at x70% y46%, gentle happy curve, no visible iris or white. Fill the former eye opening with exactly matching flat cream face skin. Keep EVERY other part pixel-aligned and unchanged: hair, bangs, stars, face outline, blush cheeks, tiny nose, mouth, colors, framing, scale. Same clean simple 2D moe cartoon cel shading; absolutely no realism or extra texture. Square, no text, no new objects. This is an animation pair, consistency is essential.",
+    "openSource": "face-open-v6.png",
+    "outputs": [
+      "face-open-v7.png",
+      "face-closed-v7.png"
+    ]
+  },
+  "acrylicV1": {
+    "version": "1.8.0",
+    "method": "built-in image_gen",
+    "references": [
+      "User supplied pastel thick acrylic paintings, 2026-10-16",
+      "face-open-v7.png composition"
+    ],
+    "open": "Use case: style-transfer. Asset: square animated face texture for an LED sphere. Input 1 is the EDIT TARGET, use its EXACT composition and cute youthful anime face geometry. Inputs 2 and 3 are STYLE REFERENCES ONLY: thick pastel acrylic paint, palette-knife impasto ridges, short broad visible paint strokes, cream and pink with lilac and pale cyan. Completely repaint Input 1 by hand in this heavy-bodied acrylic style, while retaining its one visible huge ROUND eye at the same exact location and the other eye hidden under bangs, same rounded cheeks and tiny smile. Keep the iris center x69.2% y43.0%, outer iris halfwidth12.1% halfheight13.9%, pupil centered same point with halfwidth2.9% halfheight4.6%, eye opening x53.5%..88% y29%..57%, tiny nose near42% y63%, smiling mouth near46% y74%. One visible eye only. Lilac-pink hair in broad palette knife swirls with a few cream star motifs; a saturated violet-blue iris, soft cream sclera, short violet painted lash marks. The pupil must be clearly distinct dark purple so subtle dilation can be animated. Paint must feel tactile and layered like reference paintings, with real pigment edges and thick raised brush ridges, not a digital cel image with a generic noise filter. Preserve the cute stylized childlike cartoon proportions; NO realistic anatomy, lifelike skin, 3D head, photographic face or makeup. Skin is visibly painted soft cream and pink. Fill the entire square with face and hair, no neck/body/room/object/sphere, no border/text/watermark. Do NOT copy the reference pictures' face composition or add their second eye. Maintain target geometry for animation compatibility.",
+    "closed": "Use case: precise-object-edit. Edit target is the provided cute thick acrylic impasto face texture. Make the matching fully CLOSED-EYE texture for blinking. Change ONLY the one visible eye, filling the entire eye opening with soft cream-pink acrylic skin paint matching neighboring brushwork, then paint one gently curved happy closed violet lash arc from x55% y50% via center x71% y43% to x88% y50%, same upper-left-to-lower-right friendly curve as a smiling closed anime eye. NO visible iris, pupil or white sclera. Keep EVERY other painted stroke exactly aligned and unchanged, especially hair, stars, face contour, cheeks, nose, mouth and all texture outside eye region. Preserve palette-knife impasto relief, cute cartoon proportions and square crop. This is an animation partner; do not reframe, shift, recolor, add objects or letters. The smile stays identical.",
+    "room": "Use case: style-transfer. Edit the supplied acrylic impasto face image into a completely ABSTRACT acrylic paint field, removing ALL facial features, eyes, hair identity, mouth and objects. Keep the same beautiful thick palette knife impasto ridges and broad curled brush marks as real heavy bodied acrylic pigment. Square seamless repeatable background texture, all four edges blend naturally into each other without a frame or empty strips. Dreamy lilac and periwinkle as the dominant colors, soft cream, blush pink and a little pale blue. Medium-light value, gentle contrast so thin luminous line art can sit over it. Broad flowing arcs of layered opaque pigment, tangible raised paint edges and broken color, not digital gradients or fine noise. A few very subtle small cream flecks, no recognizable stars or symbols. No text, no figures, no faces, no eyeballs, no scenery, no borders. A continuous abstract painted atmosphere matching the reference's physical acrylic brushwork.",
+    "outputs": [
+      "face-open-acrylic-v1.png",
+      "face-closed-acrylic-v1.png",
+      "acrylic-field-v1.png"
+    ]
+  },
+  "pixelAtlasesV2": {
+    "version": "1.18.0",
+    "method": "built-in image_gen",
+    "prompts": [
+      {
+        "id": "pc98",
+        "prompt": "Use case: stylized-concept. Asset type: production texture atlas for a live WebGL LED sphere; deliver one square 2048 by 2048 bitmap atlas with EXACTLY four equal square quadrants, edge-to-edge, no gutters, no panel borders, no labels, no lettering, no watermark. Top-left quadrant: original cute anime face, tightly cropped head only, straight frontal angle, head/neck must not look like a severed head, face fills the square to edges, soft friendly smile, visible eye centred at local x=0.68,y=0.43; the other eye if visible at x=0.32,y=0.43. The eye opening is approximately 0.26 of panel width and 0.24 of panel height. Mouth at x=0.5,y=0.74. Top-right quadrant: EXACT SAME composition, character, hair and mouth, eyes closed with gentle curved eyelashes; pixel registration with top-left is crucial. Bottom-left quadrant: a SINGLE large isolated circular iris and pupil, exactly centred, diameter 82% of its square, highlights and pupil painted inside, on a uniform off-white background, no eyelid, no face, no other shapes. This iris is the component to animate inside the eyes. Bottom-right quadrant: an abstract seamless decorative field in the matching palette, no face, no eye, no text; suitable for the room walls. Every quadrant is a complete independent square image. The two portraits and iris use the SAME art style and colours. Entirely illustrated, absolutely no realistic skin, no photographic eye, no 3D render. Original character, not any existing franchise. Style: authentic late-1980s to early-1990s Japanese PC-98 visual novel pixel art, restrained 16-colour palette, deliberate ordered checker dithering, crisp hard pixel clusters and one-pixel contours, an expressive sweet face, long deep teal hair with mint highlights and a sweeping fringe hiding the LEFT eye; one large raspberry-pink anime eye, peach and ivory skin, tiny smile, not uncanny. The closed-eye counterpart must keep the same teal fringe and close the RIGHT visible eye. Iris component is raspberry pink, dark plum pupil, a restrained ivory highlight. Field: midnight plum, teal and muted rose, delicate pixel star lattice. Keep everything carefully hand-pixelled and tasteful, not a vector icon, not smooth modern gradients."
+      },
+      {
+        "id": "adv90",
+        "prompt": "Use case: stylized-concept. Asset type: production texture atlas for a live WebGL LED sphere; deliver one square 2048 by 2048 bitmap atlas with EXACTLY four equal square quadrants, edge-to-edge, no gutters, no panel borders, no labels, no lettering, no watermark. Top-left quadrant: original cute anime face, tightly cropped head only, straight frontal angle, head/neck must not look like a severed head, face fills the square to edges, soft friendly smile, visible eye centred at local x=0.68,y=0.43; the other eye if visible at x=0.32,y=0.43. The eye opening is approximately 0.26 of panel width and 0.24 of panel height. Mouth at x=0.5,y=0.74. Top-right quadrant: EXACT SAME composition, character, hair and mouth, eyes closed with gentle curved eyelashes; pixel registration with top-left is crucial. Bottom-left quadrant: a SINGLE large isolated circular iris and pupil, exactly centred, diameter 82% of its square, highlights and pupil painted inside, on a uniform off-white background, no eyelid, no face, no other shapes. This iris is the component to animate inside the eyes. Bottom-right quadrant: an abstract seamless decorative field in the matching palette, no face, no eye, no text; suitable for the room walls. Every quadrant is a complete independent square image. The two portraits and iris use the SAME art style and colours. Entirely illustrated, absolutely no realistic skin, no photographic eye, no 3D render. Original character, not any existing franchise. Style: exquisitely drawn mid-1990s Japanese adventure-game pixel CG, warm brown short bob haircut, gentle cute youthful heroine, BOTH eyes visible with rich jade green irises, soft apricot cheeks, small charming mouth, warm amber hair highlights, finely controlled dithered shading, delicate pixel-line eyelashes. Strong individual pixel clusters, warm sepia and cream mood. The closed portrait has BOTH eyes peacefully closed. Iris component jade green with dark forest pupil and cream glints. Field: warm burgundy, amber, muted green, tiny diamond and star pixel ornament. Absolutely no photorealism; a charming carefully authored game CG, not a simplistic flat placeholder."
+      },
+      {
+        "id": "novel00",
+        "prompt": "Use case: stylized-concept. Asset type: production texture atlas for a live WebGL LED sphere; deliver one square 2048 by 2048 bitmap atlas with EXACTLY four equal square quadrants, edge-to-edge, no gutters, no panel borders, no labels, no lettering, no watermark. Top-left quadrant: original cute anime face, tightly cropped head only, straight frontal angle, head/neck must not look like a severed head, face fills the square to edges, soft friendly smile, visible eye centred at local x=0.68,y=0.43; the other eye if visible at x=0.32,y=0.43. The eye opening is approximately 0.26 of panel width and 0.24 of panel height. Mouth at x=0.5,y=0.74. Top-right quadrant: EXACT SAME composition, character, hair and mouth, eyes closed with gentle curved eyelashes; pixel registration with top-left is crucial. Bottom-left quadrant: a SINGLE large isolated circular iris and pupil, exactly centred, diameter 82% of its square, highlights and pupil painted inside, on a uniform off-white background, no eyelid, no face, no other shapes. This iris is the component to animate inside the eyes. Bottom-right quadrant: an abstract seamless decorative field in the matching palette, no face, no eye, no text; suitable for the room walls. Every quadrant is a complete independent square image. The two portraits and iris use the SAME art style and colours. Entirely illustrated, absolutely no realistic skin, no photographic eye, no 3D render. Original character, not any existing franchise. Style: polished turn-of-the-millennium Japanese visual-novel heroine pixel illustration, very cute large sapphire blue visible RIGHT eye, pale lavender hair with icy lilac highlights, sweeping fringe covering the LEFT eye, little pink hair ribbon, soft peach-pink blush and a tiny friendly smile; luminous pale periwinkle, powder blue and cream palette. Refined hard-edged pixel clusters with delicately dithered shadows, painterly anime structure expressed as pixel CG, not vector art. Closed portrait closes the visible RIGHT eye, with all hair and ribbon aligned. Iris component sapphire to sky-blue, navy pupil, clean ivory star-like glints. Field: periwinkle and powder blue, tiny pixel petals and stars, peaceful and delicate."
+      },
+      {
+        "id": "postpixel",
+        "prompt": "Use case: stylized-concept. Asset type: original postmodern neon pixel-eye texture atlas for an LED sphere. One square 2048 by 2048 bitmap, EXACT 2x2 equal square quadrants; no gutters, borders, labels, lettering, watermarks. All artwork is coarse deliberate hand-placed pixel art, a 64-to-96 pixel aesthetic per quadrant enlarged cleanly, hard square pixel clusters, NO smooth gradients, NO vector curves, NO face or hair. Top-left: one beautifully designed abstract eye at centre (.5,.5), dark plum almond eye opening about 80% width, cyan interior, hot pink layered circular contours, sharply stepped neon lime lashes, central purple-black pupil and yellow/cyan/ivory glints. Eye is friendly, playful, stylish, not anatomical. Top-right: exactly registered same eye and graphic surrounding shapes, but closed with a graceful thick stepped pink lash arc; all non-eyelid ornament stays at same location. Bottom-left: ONE isolated circular neon iris centred in the square, diameter82%, cyan/lime rings, dark violet central pupil and two lemon glints, plain deep plum background, no eyelids. Bottom-right: a seamlessly repeating dark purple checker field with sparse cyan/pink pixel crosses and lime tiny sparkles; no large eyes. Composition should have sophisticated commercial graphic rhythm, asymmetric ornament and generous dark negative space, not a random game icon."
+      }
+    ],
+    "assets": [
+      {
+        "id": "pc98",
+        "sha256": "024d97c0961d49c5b7ea9c1519f1c174112454e55c8091297c79bf92e725b009",
+        "width": 1254,
+        "height": 1254,
+        "file": "pixel-pc98-atlas-v2.png"
+      },
+      {
+        "id": "adv90",
+        "sha256": "e3c2c11ea4caaff75e01d5f81a08ffd0e775b085e26d1488ac5649dfc62e9c85",
+        "width": 1254,
+        "height": 1254,
+        "file": "pixel-adv90-atlas-v2.png"
+      },
+      {
+        "id": "novel00",
+        "sha256": "5e110364c0874b7c5781eb4695011741f071ce764bacad6e0834a09066553080",
+        "width": 1254,
+        "height": 1254,
+        "file": "pixel-novel00-atlas-v2.png"
+      },
+      {
+        "id": "postpixel",
+        "sha256": "ac2cca3edba48fbefe4b5d6e0ccab23b39ed657442381cfbb53748e32c190d3e",
+        "width": 1254,
+        "height": 1254,
+        "file": "pixel-postpixel-atlas-v2.png"
+      }
+    ],
+    "layout": [
+      "top-left: open portrait",
+      "top-right: closed portrait",
+      "bottom-left: iris",
+      "bottom-right: room field"
+    ],
+    "PC98": "Source PNG is full colour; live sphere uses 16-colour quantization and fixed ordered dithering."
   }
 }

@@ -1,4 +1,4 @@
-# hinahina:// — v2.7.1
+# hinahina:// — v2.7.2
 
 hinahinaのWebサイト、映像、文章、シェーダー作品を展示するポートフォリオです。本人のGLSL Effects Showcaseの描画コードを使い、流体シミュレーションとシェーダーによる背景を全画面に表示します。
 
@@ -37,7 +37,7 @@ npm run preview
 5カテゴリ・14作品を掲載しています。
 
 - **Web（5）**: 惑星の放課後、GLSL Effects Showcase、一帯一旅 ～中国の街をめぐる旅の地図～、ZEN大学履修プランナー、Quiz Pal。
-- **Visual（3）**: 眼と光、Lilian Kaleido Loom、Botanical Tide。眼と光は専用ページで体験できます。後者2件はGLSL Effects Showcaseに収録したスタディです。
+- **Visual（3）**: 二次元瞳拝、Lilian Kaleido Loom、Botanical Tide。二次元瞳拝は専用ページで体験できます。後者2件はGLSL Effects Showcaseに収録したスタディです。
 - **Words（4）**: ワディーゲストハウス、note、X、GitHub。
 - **Video（1）**: モルトバトルちゃんねる。
 - **Experiments（1）**: 神話製作機械。コンセプトページの `#depth` に直接リンクします。
@@ -126,4 +126,4 @@ Text: ワディーゲストハウス、note、X、GitHub。Video: モルトバ�
 
 絞りの形状は `src/WringShape.js`。左右の握り高さ・位相差、偏ったくびれ、しわと厚み、重みによるたわみを使う演出モデルで、布の自己衝突を解く物理ソルバーではありません。`scripts/check-wring-shape.mjs` はWebGL2 transform feedbackでGPU頂点を読み戻し、CPUの排水面と一致すること・出口流量保存を検証します。Xは撮影時のHTTP接続制限により、実画面を偽装せず `hinahina-x.svg` から生成したアカウントカードを使用します。
 
-「眼と光」は `public/works/eye-and-light/` に独立サイトの公開ファイルを同梱しています。元のGitとは分けており、更新時は取り込み元の版とファイルハッシュを記録して差し替えます。今回の記録は `EYE-AND-LIGHT-2026-10-16.md`。
+「二次元瞳拝」は `public/works/eye-and-light/` に独立サイトの公開ファイルを同梱しています。元のGitとは分けており、更新時は取り込み元の版とファイルハッシュを記録して差し替えます。今回の記録は `NIJIGEN-DOHAI-2026-10-17.md`。

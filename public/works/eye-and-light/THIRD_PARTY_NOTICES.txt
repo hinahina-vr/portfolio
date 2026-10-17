@@ -4,3 +4,15 @@ Only the required ES module import closure is vendored. No external CDN is used.
 
 Eye and room image generation records: assets/image-generation.json.
 No public redistribution license is granted for the project-specific eye/room artwork.
+
+@pixiv/three-vrm 3.5.5 — MIT License: vendor/three-vrm/LICENSE.txt.
+User-supplied avatar.vrm: 雪貂モチーフのキャラクター / ひなひな.
+Embedded copyright information: CC0 1.0 Universal — ひなひな.
+
+Animations: Quaternius — Universal Animation Library Standard (CC0 1.0 Universal).
+Author: https://quaternius.com/packs/universalanimationlibrary.html
+Motion license: assets/animations/LICENSE-Quaternius-CC0.txt
+Source files, fixed mirror commit and transformations: assets/animations/provenance.json
+
+Pixel styles v2 (1.18.0): four original atlas images generated with the built-in image_gen tool.
+Generation prompts, component layout and image hashes: assets/image-generation.json (pixelAtlasesV2).

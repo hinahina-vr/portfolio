@@ -1,0 +1,38 @@
+{
+  "author": "Quaternius",
+  "library": "Universal Animation Library Standard",
+  "license": "CC0-1.0",
+  "authorURL": "https://quaternius.com/packs/universalanimationlibrary.html",
+  "officialDistribution": "https://quaternius.itch.io/universal-animation-library",
+  "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "mirror": "https://github.com/J-Ponzo/gltf-universal-animation-library",
+  "mirrorCommit": "e24c23cf2a1323488a3faa226ea7ea21f644b73e",
+  "retrievedAt": "2026-10-16T10:53:27.818883+00:00",
+  "clips": [
+    "Idle_Loop",
+    "Walk_Loop",
+    "Jog_Fwd_Loop"
+  ],
+  "changes": [
+    "Retargeted source T pose to VRM normalized humanoid coordinates for 51 bones.",
+    "Interpolated baked rotations and translations and resampled at 60 Hz.",
+    "Closed walk/idle final samples and added one closing interpolation sample for Jog.",
+    "Scaled hip translations to the supplied avatar leg length at runtime.",
+    "Grounded with samples of the supplied VRM skinned boot vertices."
+  ],
+  "files": {
+    "AnimationLibrary_Godot_Standard.gltf": "0ff075c7ad6855c5c2c37a171592ee8f0d6ab2f58259e2be77a9b63dd8027765",
+    "AnimationLibrary_Godot_Standard.bin": "6e65377d81558333c4093dbb144a48fd19019343d82b1a3a7992a98ec0e0543c",
+    "LICENSE-CC0.txt": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+  },
+  "convertedSHA256": "6eb6697087b5dd45411b656b002b7bee8d394800fb5dfbff8e62f06589be047d",
+  "jump": {
+    "clips": [
+      "Jump_Start",
+      "Jump_Loop",
+      "Jump_Land"
+    ],
+    "file": "quaternius-jump.json",
+    "processing": "Same 51-bone retargeting and 60 Hz sampling as walking; one-shot start/land endpoints preserved, loop endpoint closed. Authored rotations blend with existing locomotion. Runtime vertical travel uses gravity, and source hip translation is removed from jump clips."
+  }
+}
