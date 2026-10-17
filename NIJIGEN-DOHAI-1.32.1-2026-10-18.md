@@ -25,4 +25,10 @@ Windows Chrome155でアバター回帰7項目PASS・エラー0。実通信失敗
 
 最終ビルドは2.7.4 / index-WahzbJgt.js / index-DKXK5iY5.css。サイト全体のFPSや物理GPU故障の評価ではない。
 
-公開後の確認は完了時に追記する。証跡は `qa/nijigen-dohai-1-32-1-20261018/`。モバイルはWindows Chromeの画面・タッチ入力エミュレーションで検証し、物理iOS/Android端末は対象外。
+公開コミット: `4b786032bdd30d4a1ea36ebd04880f4840b892c1`。ポートフォリオ2.7.4、作品1.32.1。
+
+[GitHub Actions 39069916070](https://github.com/hinahina-vr/portfolio/actions/runs/39069916070) 成功。build55秒・deploy18秒。公開build.jsonの版・コミットが一致。掲載JS/CSS、4K画像とサムネイル、作品HTML/CSS、更新6モジュールとアバター設定、NOTICEの14公開ファイルのSHA-256が最終distと完全一致した。
+
+公開URLでもアバター回帰7項目と既存統合10項目がすべてPASS・エラー0。掲載画面からEnter artworkを実際にクリックして体験へ移動。通信失敗・GPU準備後の注入例外からの復帰と再試行、両モデルの移動/ジャンプ/瞳への進入と帰還/F没入、反復切替、7絵柄、既存動画のシーク、スマホの同時タッチ入力・メニュー・再読込を確認。公開版の掲載画面とスマホの作品画面を目視した。
+
+公開後記録はavatars-public/results.json、public/results.json、public/build-verification.json。モバイルと故障試験の限界は上記の通り。証跡は `qa/nijigen-dohai-1-32-1-20261018/`。モバイルはWindows Chromeの画面・タッチ入力エミュレーションで検証し、物理iOS/Android端末は対象外。
