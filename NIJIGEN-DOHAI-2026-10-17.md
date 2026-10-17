@@ -45,4 +45,12 @@ Windows Chrome 155.0.8059.82で、最終distを対象に `node tests/eye-and-lig
 
 ## 公開
 
-公開処理と公開後の実画面確認の結果を追記する。
+公開コミット: `552a832813ef628251985ae374c69d16bcc13f1a` / ポートフォリオv2.7.2。作品本体は1.31.0。
+
+GitHub Actions [39029086729](https://github.com/hinahina-vr/portfolio/actions/runs/39029086729) 成功。build 51秒、deploy 17秒。CIは軽量smokeのみで、フル試験を増やしていない。ローカルsmokeは25.845秒でPASS、エラー0。
+
+公開URLに対して `node tests/eye-and-light.mjs https://hinahina-vr.github.io/portfolio/` を実行。掲載画面からEnter artworkを実際にクリックし、新しいタブの作品ページへ移動。上記10項目がすべてPASS、エラー0。新名称、4画面幅、通常トランジション、実3D・アバター・瞳の内部・帰還、7タッチの異なる描画、旧サンプル注記と映像シーク、ネイティブの同時タッチ入力、メニューと再読込まで確認した。公開後の画面も目視した。
+
+公開 `build.json` の版・コミットが一致。ポートフォリオJS/CSS、新WebP、作品HTML/CSS、アバターや光の実装を含む10ファイルのSHA-256がローカル最終distと完全一致。
+
+公開後記録: `qa/nijigen-dohai-20261017/public/results.json`、`build-verification.json`。同フォルダーにPC・各スマホ幅の掲載画面と作品画面、2種類のタッチ、瞳の内部、モバイルメニューの静止画を保存した。
