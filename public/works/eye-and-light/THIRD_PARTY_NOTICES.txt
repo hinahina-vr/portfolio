@@ -16,3 +16,7 @@ Source files, fixed mirror commit and transformations: assets/animations/provena
 
 Pixel styles v2 (1.18.0): four original atlas images generated with the built-in image_gen tool.
 Generation prompts, component layout and image hashes: assets/image-generation.json (pixelAtlasesV2).
+
+User-supplied avatar-ginkgo.vrm: 銀杏のちびキャラクター / ひなひな.
+Embedded copyright: CC0 1.0 Universal — ひなひな.
+Both avatar binaries are preserved; selector portraits rendered from these models.

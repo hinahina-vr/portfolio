@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {DEFAULT_AVATAR} from './avatars.js';
 import {advanceJump,groundedJump,launchJump} from './jump.js';
 import {makeAvatarUnlit} from './avatar-material.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -17,21 +18,22 @@ export class AvatarWalker{
   this.firstPerson=false;this.fpsYaw=0;this.fpsPitch=-.15;this.yaw=0;this.pitch=.27;this.distance=.9;this.walkPhase=0;this.walkBlend=0;this.clock=0;
   this.followTarget=new THREE.Vector3();this.followDesired=new THREE.Vector3();this.followHead=new THREE.Vector3();this.followLook=new THREE.Vector3();this.followDirection=new THREE.Vector3();
   this.velocity=new THREE.Vector3();this.legs={};this.hair=[];this.signal=new AbortController();const options={signal:this.signal.signal};
-  document.addEventListener('keydown',e=>{if(!movementKeys.has(e.code)||!canInput()||e.target.closest('button,input,select,textarea,a,[contenteditable]'))return;e.preventDefault();this.keys.add(e.code);},options);
+  document.addEventListener('keydown',e=>{if(!movementKeys.has(e.code)||!this.canInput()||e.target.closest('button,input,select,textarea,a,[contenteditable]'))return;e.preventDefault();this.keys.add(e.code);},options);
   document.addEventListener('keyup',e=>this.keys.delete(e.code),options);
   window.addEventListener('blur',()=>this.clear(),options);document.addEventListener('visibilitychange',()=>{if(document.hidden)this.clear();},options);
-  canvas.addEventListener('pointerdown',e=>{if(!canInput()||e.button!==0||this.pointer)return;this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});},options);
-  canvas.addEventListener('pointermove',e=>{const p=this.pointer;if(!p||p.id!==e.pointerId||!canInput())return;if(this.firstPerson){this.fpsYaw-=(e.clientX-p.x)*.005;this.fpsPitch=THREE.MathUtils.clamp(this.fpsPitch+(e.clientY-p.y)*.003,-1.25,1.25);}else{this.yaw-=(e.clientX-p.x)*.005;this.pitch=THREE.MathUtils.clamp(this.pitch+(e.clientY-p.y)*.003,-.22,.65);}p.x=e.clientX;p.y=e.clientY;this.cameraDirty=24;},options);
+  canvas.addEventListener('pointerdown',e=>{if(!this.canInput()||e.button!==0||this.pointer)return;this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});},options);
+  canvas.addEventListener('pointermove',e=>{const p=this.pointer;if(!p||p.id!==e.pointerId||!this.canInput())return;if(this.firstPerson){this.fpsYaw-=(e.clientX-p.x)*.005;this.fpsPitch=THREE.MathUtils.clamp(this.fpsPitch+(e.clientY-p.y)*.003,-1.25,1.25);}else{this.yaw-=(e.clientX-p.x)*.005;this.pitch=THREE.MathUtils.clamp(this.pitch+(e.clientY-p.y)*.003,-.22,.65);}p.x=e.clientX;p.y=e.clientY;this.cameraDirty=24;},options);
   const release=e=>{if(this.pointer?.id===e.pointerId)this.pointer=null;};for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,release,options);
-  canvas.addEventListener('wheel',e=>{if(!canInput())return;e.preventDefault();this.distance=THREE.MathUtils.clamp(this.distance+e.deltaY*.0008,.9,1.85);this.cameraDirty=24;},{...options,passive:false});
+  canvas.addEventListener('wheel',e=>{if(!this.canInput())return;e.preventDefault();this.distance=THREE.MathUtils.clamp(this.distance+e.deltaY*.0008,.9,1.85);this.cameraDirty=24;},{...options,passive:false});
   this.reset();
  }
  clear(){this.velocity?.set(0,0,0);this.keys.clear();this.touchKeys.clear();this.inputKeys.clear();const id=this.pointer?.id;this.pointer=null;if(id!==undefined&&this.canvas.hasPointerCapture(id))this.canvas.releasePointerCapture(id);this.canvas.dispatchEvent(new Event('avatarinputclear',{bubbles:true}));document.querySelectorAll("[data-move].held").forEach(b=>b.classList.remove("held"));}
  jump(){if(!this.ready||!this.canInput()||this.jumpState.airborne)return false;this.jumpState=launchJump(this.jumpState);return true;}
  reset(){this.clear();this.jumpState=groundedJump();this.position.set(0,INSTALLATION.floorY,EYE_PROXIMITY.normalDistance);this.root.rotation.y=Math.PI;this.firstPerson=false;this.fpsYaw=0;this.fpsPitch=-.15;this.yaw=0;this.pitch=.27;this.distance=.9;this.walkPhase=this.walkBlend=0;this.cameraPosition=null;this.cameraDirty=24;this.root.updateMatrixWorld(true);this.vrm?.springBoneManager?.reset();if(this.motion){this.motion.reset();this.groundFeet();this.vrm.update(0);}}
- async prepare(onProgress=()=>{}){
+ async prepare(onProgress=()=>{},config=DEFAULT_AVATAR){
+  this.avatarId=config.id;
   const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
-  const gltf=await loader.loadAsync(new URL('../assets/avatar.vrm',import.meta.url).href,onProgress);
+  const gltf=await loader.loadAsync(new URL(config.file,import.meta.url).href,onProgress);
   const vrm=this.vrm=gltf.userData.vrm;if(!vrm)throw Error('VRM avatar unavailable');VRMUtils.rotateVRM0(vrm);
   for(const material of vrm.materials)makeAvatarUnlit(material);
   this.root.add(vrm.scene);vrm.scene.updateMatrixWorld(true);
@@ -115,5 +117,5 @@ export class AvatarWalker{
   if(!this.fadeMaterials){this.fadeMaterials=new Map();this.root.traverse(o=>{for(const m of (Array.isArray(o.material)?o.material:o.material?[o.material]:[]))if(!this.fadeMaterials.has(m))this.fadeMaterials.set(m,{opacity:m.opacity,transparent:m.transparent,depthWrite:m.depthWrite,alphaTest:m.alphaTest});});}
   for(const [m,base] of this.fadeMaterials){const fading=amount>0,transparent=fading||base.transparent;if(m.transparent!==transparent){m.transparent=transparent;m.needsUpdate=true;}m.opacity=base.opacity*(1-amount);m.depthWrite=fading?false:base.depthWrite;m.alphaTest=fading?0:base.alphaTest;}
  }
- dispose(){this.signal.abort();this.motion?.dispose();this.clear();}
+ dispose(){this.signal.abort();this.motion?.dispose();this.clear();this.root.removeFromParent();if(this.vrm)VRMUtils.deepDispose(this.vrm.scene);this.ready=false;}
 }

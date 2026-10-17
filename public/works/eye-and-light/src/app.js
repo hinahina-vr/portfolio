@@ -1,7 +1,9 @@
+import {AVATARS,avatarById} from './avatars.js';
 import {portraitStyle} from './styles.js';
 import {preloader} from './preloader.js';
 const $=id=>document.getElementById(id);
 const stage=$('stage'),status=$('status'),play=$('play'),seek=$('seek'),auto=$('auto'),view=$('view'),experience=$('experience'),menu=$('menu'),video=$('sample'),artStyle=$('art-style'),immersionButton=$('immersion-mode'),touchActions=$('touch-actions'),touchJump=$('touch-jump'),touchImmersion=$('touch-immersion');
+const avatarToggle=$('avatar-toggle'),avatarMenu=$('avatar-menu');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let r=null,playing=!reduced,time=0,previous=null,dirty=true,mode='room',idleTimer,mediaLoad,mediaFailure=false,modeRevision=0;
 const state=window.eyeAndLight={ready:false,fallback:false,get time(){return time;},get playing(){return playing;},get mode(){return mode;},get renderer(){return r;}};
@@ -13,7 +15,7 @@ function bindPress(button,action){
  button.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||button.disabled)return;e.preventDefault();lastTouch=performance.now();action();});
  button.onclick=e=>{if(e.detail>0&&performance.now()-lastTouch<1000)return;action();};
 }
-function openMenu(){wake();r?.avatar.clear();menu.showModal();update();$('menu-toggle').setAttribute('aria-expanded','true');}
+function openMenu(){avatarMenu.close();wake();r?.avatar.clear();menu.showModal();update();$('menu-toggle').setAttribute('aria-expanded','true');}
 const menuToggle=$('menu-toggle');let menuTouch=null,menuTouchClick=null;
 menuToggle.onclick=openMenu;
 menuToggle.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){e.preventDefault();menuTouch=e.pointerId;r?.avatar.clear();}});
@@ -39,7 +41,7 @@ touchQuery.addEventListener('change',()=>inputMode(touchQuery.matches));
 document.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')inputMode(true);},{passive:true});
 document.addEventListener('keydown',e=>{if(!e.isComposing&&/^(Key[WASDFP]|Arrow(Up|Down|Left|Right)|Space)$/.test(e.code))inputMode(false);});
 function syncImmersion(){
- const walk=!!r?.avatar.ready&&mode==='room'&&r.view==='walk',disabled=!walk,pressed=String(!!r?.manualFirstPerson);
+ const walk=!!r?.avatar.ready&&mode==='room'&&r.view==='walk',disabled=!walk||!!r?.avatarChanging,pressed=String(!!r?.manualFirstPerson);
  for(const button of [immersionButton,touchImmersion]){
   if(button.disabled!==disabled)button.disabled=disabled;
   if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
@@ -49,6 +51,8 @@ function syncImmersion(){
  const touchLabel=r?.manualFirstPerson?'戻る':'没入';
  if(touchImmersion.textContent!==touchLabel)touchImmersion.textContent=touchLabel;
  const touchAria=r?.manualFirstPerson?'三人称視点に戻る':'没入モードで一人称視点にする';if(touchImmersion.getAttribute('aria-label')!==touchAria)touchImmersion.setAttribute('aria-label',touchAria);
+ if(avatarToggle.hidden===walk)avatarToggle.hidden=!walk;
+ const avatarDisabled=!walk||!!r?.avatarChanging;if(avatarToggle.disabled!==avatarDisabled)avatarToggle.disabled=avatarDisabled;
  touchActions.hidden=!walk||!touchInput;
  if(touchJump.disabled!==(!walk||!playing))touchJump.disabled=!walk||!playing;
  const hint=walk?(touchInput?(playing?'右下の▲で歩く · スワイプで見回す':'停止中 · メニューから再生できます'):'W A S D で歩く · Space でジャンプ · F で没入'):(touchInput?'スワイプで回転 · ピンチで拡大':'ドラッグで回転 · ホイールで拡大');
@@ -56,8 +60,35 @@ function syncImmersion(){
  const stageLabel=walk?(touchInput?'3D空間。右下の移動ボタン、右下のジャンプ・没入ボタンで操作。スワイプで見回します。':'3D空間。WASDで歩く。ドラッグで見回す。Fで没入。Spaceでジャンプ。Pで再生と停止。'):'3D空間。ドラッグやスワイプで回転。ホイールやピンチで拡大。';if(stage.getAttribute('aria-label')!==stageLabel)stage.setAttribute('aria-label',stageLabel);
 }
 inputMode(touchInput);
-function jump(){if(mode==='room'&&r?.view==='walk'&&playing&&r.avatar.jump())dirty=true;}
-function toggleImmersion(){if(mode!=='room'||!r?.toggleImmersion())return;r.avatar.clear();dirty=true;syncImmersion();}
+
+function syncAvatar(){
+ const config=avatarById(r?.avatar.avatarId);if(!config)return;
+ $('avatar-current-image').src=config.thumbnail;avatarToggle.setAttribute('aria-label','アバターを選ぶ：'+config.shortName);
+ for(const button of $('avatar-slots').children)button.setAttribute('aria-pressed',String(button.dataset.avatar===config.id));
+}
+for(const config of AVATARS){
+ const button=document.createElement('button');button.type='button';button.className='avatar-slot';button.dataset.avatar=config.id;button.setAttribute('aria-pressed','false');
+ const image=document.createElement('img');image.src=config.thumbnail;image.alt='';
+ const text=document.createElement('span'),slot=document.createElement('small'),name=document.createElement('strong');slot.textContent=config.slot;name.textContent=config.shortName;text.append(slot,name);
+ const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');button.append(image,text,dot);$('avatar-slots').append(button);
+ button.onclick=async()=>{
+  if(!r||r.avatarChanging)return;if(r.avatar.avatarId===config.id){avatarMenu.close();stage.focus({preventScroll:true});return;}
+  r.avatar.clear();$('avatar-error').hidden=true;avatarMenu.close();$('avatar-loading').hidden=false;avatarMenu.inert=true;
+  try{
+   await r.selectAvatar(config.id,(value,label)=>{$('avatar-progress').setAttribute('aria-valuenow',Math.round(value));$('avatar-progress').firstElementChild.style.transform='scaleX('+value/100+')';$('avatar-loading-label').textContent=label;});
+   syncAvatar();avatarMenu.close();status.textContent=config.shortName+'に切り替えました';
+  }catch{ avatarMenu.showModal();avatarToggle.setAttribute('aria-expanded','true');$('avatar-error').textContent='読み込めませんでした。今のアバターを続けています。もう一度選んでください。';$('avatar-error').hidden=false; }
+  finally{$('avatar-loading').hidden=true;avatarMenu.inert=false;previous=null;dirty=true;update();if(avatarMenu.open)$('avatar-close').focus({preventScroll:true});else stage.focus({preventScroll:true});}
+ };
+}
+avatarToggle.onclick=()=>{if(avatarToggle.disabled)return;r.avatar.clear();syncAvatar();avatarMenu.showModal();avatarToggle.setAttribute('aria-expanded','true');};
+$('avatar-close').onclick=()=>avatarMenu.close();
+avatarMenu.addEventListener('close',()=>{avatarToggle.setAttribute('aria-expanded','false');wake();});
+avatarMenu.addEventListener('cancel',e=>{if(r?.avatarChanging)e.preventDefault();});
+avatarMenu.addEventListener('click',e=>{const b=avatarMenu.getBoundingClientRect();if(!r?.avatarChanging&&e.target===avatarMenu&&(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom))avatarMenu.close();});
+
+function jump(){if(mode==='room'&&!r?.avatarChanging&&r?.view==='walk'&&playing&&r.avatar.jump())dirty=true;}
+function toggleImmersion(){if(mode!=='room'||r?.avatarChanging||!r?.toggleImmersion())return;r.avatar.clear();dirty=true;syncImmersion();}
 immersionButton.onclick=()=>{toggleImmersion();menu.close();stage.focus();};
 bindPress(touchImmersion,()=>{toggleImmersion();stage.focus({preventScroll:true});});
 bindPress(touchJump,()=>{jump();stage.focus({preventScroll:true});});
@@ -74,7 +105,7 @@ artStyle.onchange=async()=>{const requested=artStyle.value;artStyle.disabled=tru
 view.onchange=()=>{if(r){r.avatar.clear();r.view=view.value;r.resetImmersion();syncImmersion();auto.checked=true;auto.disabled=r.view==='walk';$('walk-pad').hidden=r.view!=='walk';document.body.dataset.view=r.view;dirty=true;}};auto.onchange=()=>dirty=true;
 $('reset').onclick=()=>{time=0;if(r){r.avatar.reset();r.styleEpoch=0;r.proximity=0;r.resetImmersion();r.view=view.value='walk';r.avatar.follow(r.camera,1/60,true);}auto.checked=true;auto.disabled=true;$('walk-pad').hidden=mode==='film';document.body.dataset.view='walk';if(mode==='film'&&video.readyState>=1)video.currentTime=0;dirty=true;update();};
 $('film-mode').onclick=async()=>{await setMode(mode==='film'?'room':'film');menu.close();};
-document.addEventListener('keydown',e=>{if(!state.ready||e.repeat||e.isComposing||e.ctrlKey||e.metaKey||e.altKey||menu.open||e.target.closest('button,input,textarea,select,a,summary,[contenteditable]'))return;if(e.code==='KeyF'){e.preventDefault();toggleImmersion();return;}if(e.code==='Space'){e.preventDefault();if(mode==='room'&&r?.view==='walk'){jump();}else setPlaying(!playing);return;}if(e.code==='KeyP'){e.preventDefault();setPlaying(!playing);}});
+document.addEventListener('keydown',e=>{if(!state.ready||e.repeat||e.isComposing||e.ctrlKey||e.metaKey||e.altKey||menu.open||avatarMenu.open||r?.avatarChanging||e.target.closest('button,input,textarea,select,a,summary,[contenteditable]'))return;if(e.code==='KeyF'){e.preventDefault();toggleImmersion();return;}if(e.code==='Space'){e.preventDefault();if(mode==='room'&&r?.view==='walk'){jump();}else setPlaying(!playing);return;}if(e.code==='KeyP'){e.preventDefault();setPlaying(!playing);}});
 
 $('fullscreen').onclick=async()=>{menu.close();try{if(document.fullscreenElement)await document.exitFullscreen();else await experience.requestFullscreen();}catch{status.textContent='全画面表示はこの環境では使えません';}};
 document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'全画面を終了':'全画面にする';dirty=true;});
@@ -87,7 +118,7 @@ function releaseMove(e){
 }
 for(const button of document.querySelectorAll('[data-move]')){
  button.addEventListener('pointerdown',e=>{
-  if(!state.ready||!r?.avatar.ready||r.view!=='walk'||menu.open||mode==='film'||!playing||e.button!==0)return;
+  if(!state.ready||!r?.avatar.ready||r.view!=='walk'||menu.open||avatarMenu.open||r.avatarChanging||mode==='film'||!playing||e.button!==0)return;
   e.preventDefault();button.setPointerCapture(e.pointerId);movePointers.set(e.pointerId,button);
   r.avatar.touchKeys.add(button.dataset.move);button.classList.add('held');stage.focus({preventScroll:true});
  });
@@ -98,8 +129,8 @@ function clearTouchMoves(){
  for(const [id,button] of held){button.classList.remove('held');if(button.hasPointerCapture(id))button.releasePointerCapture(id);}
 }
 stage.addEventListener('avatarinputclear',clearTouchMoves);
-function enable(){experience.inert=false;$('menu-toggle').disabled=false;for(const e of menu.querySelectorAll('button,input,select'))e.disabled=false;if(!document.fullscreenEnabled)$('fullscreen').hidden=true;document.body.classList.add('ready');state.ready=true;artStyle.disabled=!r||mode==='film';if(r){artStyle.value=r.autoStyle?'auto':r.style;$('cycle-note').hidden=!r.autoStyle;view.value=r.view;document.body.dataset.view=r.view;auto.disabled=r.view==='walk';$('walk-pad').hidden=r.view!=='walk';}update();wake();}
-function frame(now){requestAnimationFrame(frame);if(document.hidden){previous=null;return;}if(mode==='film'){if(video.readyState>=1){time=video.currentTime;update();}return;}if(!r)return;if(previous===null)previous=now;const dt=Math.min(.1,(now-previous)/1000);previous=now;if(playing){time=(time+dt)%420;dirty=true;}if(r.step(dt,playing&&!menu.open))dirty=true;if(dirty){r.render(time,{auto:auto.checked});update();dirty=false;}}
+function enable(){experience.inert=false;$('menu-toggle').disabled=false;for(const e of menu.querySelectorAll('button,input,select'))e.disabled=false;if(!document.fullscreenEnabled)$('fullscreen').hidden=true;document.body.classList.add('ready');state.ready=true;syncAvatar();artStyle.disabled=!r||mode==='film';if(r){artStyle.value=r.autoStyle?'auto':r.style;$('cycle-note').hidden=!r.autoStyle;view.value=r.view;document.body.dataset.view=r.view;auto.disabled=r.view==='walk';$('walk-pad').hidden=r.view!=='walk';}update();wake();}
+function frame(now){requestAnimationFrame(frame);if(document.hidden){previous=null;return;}if(mode==='film'){if(video.readyState>=1){time=video.currentTime;update();}return;}if(!r||r.avatarChanging){previous=null;return;}if(previous===null)previous=now;const dt=Math.min(.1,(now-previous)/1000);previous=now;if(playing){time=(time+dt)%420;dirty=true;}if(r.step(dt,playing&&!menu.open&&!avatarMenu.open&&!r.avatarChanging))dirty=true;if(dirty){r.render(time,{auto:auto.checked});update();dirty=false;}}
 preloader.update(2,'光を準備しています');
 try{const {MeditationRenderer}=await import('./renderer.js');r=new MeditationRenderer(stage);r.onArtworkReturn=syncArtworkSelection;window.meditationRenderer=r;await r.prepare(portraitStyle(new URL(location.href).searchParams.get('style')).id,{cycle:new URL(location.href).searchParams.get('cycle')!=='off',onProgress:preloader.update});if(r.styleLoadError){$('style-error').textContent='選択したタッチを読み込めませんでした。もう一度選んでください。';$('style-error').hidden=false;}const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;const scale=Math.min(devicePixelRatio||1,2,1920/w,1080/h);r.resize(Math.max(1,Math.round(w*scale)),Math.max(1,Math.round(h*scale)));dirty=true;};new ResizeObserver(resize).observe(stage);resize();r.render(0);r.controls.addEventListener('start',()=>{if(r.view!=='walk')auto.checked=false;dirty=true;});r.controls.addEventListener('change',()=>dirty=true);enable();status.textContent=r.avatarError?'アバターを読み込めません。室内表示を続けています。':'';if(location.hash==='#movie'){preloader.update(95,'映像を読み込んでいます');await setMode('film');await mediaFrame();}await preloader.finish();}
 catch(error){r=null;state.fallback=true;preloader.update(95,'映像を読み込んでいます');$('walk-pad').hidden=true;$('fallback').hidden=false;$('film-mode').hidden=true;try{await setMode('film');await mediaFrame();enable();status.textContent='';await preloader.finish();}catch{preloader.fail();}console.warn('3D unavailable; fullscreen film enabled.',error.message);}

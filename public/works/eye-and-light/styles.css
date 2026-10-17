@@ -72,3 +72,13 @@ body[data-input=touch] .signature h1{font-size:13px;letter-spacing:.24em;margin:
  body[data-input=touch] .art-copy h2{font-size:20px;line-height:1.4;margin-bottom:8px}
  body[data-input=touch] .art-lead,body[data-input=touch] .art-detail{display:none}
 }
+
+/* Visitor selection lives beside the movement controls, with room for more slots. */
+.avatar-toggle{position:absolute;z-index:3;right:max(30px,env(safe-area-inset-right));bottom:26px;display:flex;align-items:center;gap:8px;height:44px;padding:4px 10px 4px 4px;border:1px solid #ffffff55;border-radius:24px;background:#23183199;color:#fff5ff;backdrop-filter:blur(12px);font-size:10px;letter-spacing:.06em;box-shadow:0 2px 16px #1e10232b}
+.avatar-toggle img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#9780b74d}.avatar-toggle svg{width:14px;height:14px}
+body[data-input=touch] .avatar-toggle{right:calc(max(18px,env(safe-area-inset-right)) + 174px);bottom:calc(42px + env(safe-area-inset-bottom));width:52px;height:48px;padding:5px;justify-content:center}
+body[data-input=touch] .avatar-toggle span,body[data-input=touch] .avatar-toggle svg{display:none}
+body:has(dialog[open]) .avatar-toggle{visibility:hidden}
+.avatar-menu{inset:auto max(18px,env(safe-area-inset-right)) calc(104px + env(safe-area-inset-bottom)) auto;width:min(300px,calc(100vw - 36px));max-height:calc(100dvh - 142px - env(safe-area-inset-bottom));padding:20px;border-radius:16px}
+.avatar-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.avatar-heading h2{margin:0;font:400 20px/1.5 'Yu Mincho',serif;letter-spacing:.14em}.avatar-heading .close{font-size:26px}
+.avatar-slots{display:flex;flex-direction:column;gap:8px}.avatar-menu .avatar-slot{display:flex;gap:12px;align-items:center;min-height:70px;width:100%;padding:8px 12px;text-align:left;border-radius:10px;border-color:#ddc5ee29;background:#ffffff03}.avatar-slot img{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#9780b74d}.avatar-slot span{flex:1}.avatar-slot small{display:block;font-size:9px;color:#c9b5db;letter-spacing:.08em}.avatar-slot strong{font-weight:400;font-size:13px}.avatar-slot i{width:6px;height:6px;border-radius:50%;background:transparent}.avatar-menu .avatar-slot[aria-pressed=true]{border-color:#e3c4f899;background:#d9b2ef15}.avatar-slot[aria-pressed=true] i{background:#efd8ff;box-shadow:0 0 10px #e0b8ff}.avatar-loading{position:absolute;inset:0;z-index:15;display:grid;place-items:center;background:radial-gradient(ellipse at center,#38234e,#120c21);color:#f5edff}.avatar-loading p{font-size:11px}.avatar-loading .loading-track span{display:block;height:100%;transform:scaleX(0);transform-origin:left;background:#eddaff;transition:transform .2s}

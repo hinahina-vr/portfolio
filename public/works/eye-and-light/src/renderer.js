@@ -1,3 +1,4 @@
+import {avatarById} from './avatars.js';
 import {emptyIrisJourney,irisJourney} from './iris-journey.js';
 import {contactImmersion,emptyContactImmersion} from './contact-immersion.js';
 import {roomMotion} from './room-motion.js';
@@ -115,7 +116,7 @@ vec3 paint(vec3 p){p=closeupFrame*p;if(styleMix>=1.)return paintLayer(p,nextPort
 export class MeditationRenderer{
  constructor(container){this.renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});this.renderer.setPixelRatio(1);this.renderer.setClearColor('#574778');container.append(this.renderer.domElement);this.uniforms={closeupFrame:{value:new THREE.Matrix3()},portrait:{value:null},closedPortrait:{value:null},acrylicMap:{value:null},paintStyle:{value:0},nextPortrait:{value:null},nextClosedPortrait:{value:null},nextAcrylicMap:{value:null},nextPaintStyle:{value:0},styleMix:{value:0},proximity:{value:0},phase:{value:0},ceremonyPhase:{value:0},breath:{value:.5},beat:{value:0},blink:{value:0},pupilScale:{value:1},pupilOffset:{value:new THREE.Vector2()},gaze:{value:new THREE.Vector2()}};this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#574778');this.camera=new THREE.PerspectiveCamera(32,16/9,.01,80);this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(0,-.12,0);this.controls.minDistance=1.3;this.controls.maxDistance=8;this.controls.enableDamping=false;this.controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.PAN};
  this.sphereMaterial=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:body+'void main(){gl_FragColor=vec4(artToLinear(paint(normalize(point))),1.);\n#include <colorspace_fragment>\n}',uniforms:this.uniforms});this.sphere=new THREE.Mesh(new THREE.SphereGeometry(.5,192,128,0,TAU(),0,Math.PI),this.sphereMaterial);this.scene.add(this.sphere);
- this.style='cel';this.activeStyle='cel';this.autoStyle=false;this.styleEpoch=0;this.styleRevision=0;this.styleTextures=new Map();this.returnArtwork=new Map();this.irisJourney=emptyIrisJourney();this.closeupDirection=new THREE.Vector3();this.closeupUp=new THREE.Vector3(0,1,0);this.closeupZero=new THREE.Vector3();this.closeupMatrix=new THREE.Matrix4();this.closeupRotation=new THREE.Quaternion();this.closeupBlend=new THREE.Quaternion();this.trackedGaze=new THREE.Vector2();this.eyeHead=new THREE.Vector3();this.eyeYaw=0;this.proximity=0;this.contactImmersion=emptyContactImmersion();this.manualFirstPerson=false;this.manualImmersion=0;this.installation=createInstallation(this.scene,this.uniforms);this.view='walk';this.avatar=new AvatarWalker(this.scene,this.renderer.domElement,()=>this.view==='walk'&&document.body.classList.contains('ready')&&document.body.dataset.mode==='room'&&!document.querySelector('#menu')?.open);this.controls.enabled=false;
+ this.style='cel';this.activeStyle='cel';this.autoStyle=false;this.styleEpoch=0;this.styleRevision=0;this.styleTextures=new Map();this.returnArtwork=new Map();this.irisJourney=emptyIrisJourney();this.closeupDirection=new THREE.Vector3();this.closeupUp=new THREE.Vector3(0,1,0);this.closeupZero=new THREE.Vector3();this.closeupMatrix=new THREE.Matrix4();this.closeupRotation=new THREE.Quaternion();this.closeupBlend=new THREE.Quaternion();this.trackedGaze=new THREE.Vector2();this.eyeHead=new THREE.Vector3();this.eyeYaw=0;this.proximity=0;this.contactImmersion=emptyContactImmersion();this.manualFirstPerson=false;this.manualImmersion=0;this.installation=createInstallation(this.scene,this.uniforms);this.view='walk';this.avatar=new AvatarWalker(this.scene,this.renderer.domElement,()=>!this.avatarChanging&&this.view==='walk'&&document.body.classList.contains('ready')&&document.body.dataset.mode==='room'&&!document.querySelector('#menu')?.open&&!document.querySelector('#avatar-menu')?.open);this.controls.enabled=false;
  this.flat=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});this.flatScene=new THREE.Scene();this.flatCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,2);this.flatCamera.position.z=1;this.flatScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:body+'void main(){float lon=(uv0.x-.5)*TAU,lat=(uv0.y-.5)*PI;vec3 p=vec3(sin(lon)*cos(lat),sin(lat),cos(lon)*cos(lat));gl_FragColor=vec4(paint(p),1.);}',uniforms:this.uniforms})));this.composer=new EffectComposer(this.renderer);this.scenePass=new RenderPass(this.scene,this.camera);this.composer.addPass(this.scenePass);this.bloom=new UnrealBloomPass(new THREE.Vector2(1280,720),.42,.55,1.08);this.composer.addPass(this.bloom);this.surroundingLight=new SurroundingLightPass(this.sphere,this.camera);this.composer.addPass(this.surroundingLight);this.composer.addPass(new OutputPass());this.composer.renderTarget1.samples=4;this.composer.renderTarget2.samples=4;this.setTime(0);this.cameraAt(0);this.resize(1280,720);}
  async loadStyle(config){const results=await Promise.allSettled((config.pixel?[config.background]:[config.open,config.closed,config.background]).map(async(file,i)=>{const t=await new THREE.TextureLoader().loadAsync(new URL('../assets/'+file,import.meta.url).href);t.colorSpace=THREE.NoColorSpace;t.generateMipmaps=!config.pixel;t.minFilter=config.pixel?THREE.NearestFilter:THREE.LinearMipmapLinearFilter;t.magFilter=config.pixel?THREE.NearestFilter:THREE.LinearFilter;t.anisotropy=Math.min(16,this.renderer.capabilities.getMaxAnisotropy());if(this.prepareProgress)this.prepareProgress(8+52*(++this.prepareLoaded)/this.prepareTotal,'光の素材を読み込んでいます');if(i===2||config.pixel)t.wrapS=t.wrapT=THREE.MirroredRepeatWrapping;return t;}));const failed=results.find(r=>r.status==='rejected');if(failed){for(const r of results)if(r.status==='fulfilled')r.value.dispose();throw failed.reason;}const textures=results.map(r=>r.value);const assets=config.pixel?[textures[0],textures[0],textures[0]]:textures;this.returnArtwork.set(config.id,assets);return assets;}
  styleAssets(config){let pending=this.styleTextures.get(config.id);if(!pending){pending=this.loadStyle(config).catch(error=>{this.styleTextures.delete(config.id);throw error;});this.styleTextures.set(config.id,pending);}return pending;}
@@ -177,6 +178,37 @@ export class MeditationRenderer{
   this.renderingPrepared=true;this.preparedPrograms=renderer.info.programs.length;onProgress(98,'準備を仕上げています');
  }
 
+ // Keep loading transactional: the current visitor survives a failed replacement.
+ async selectAvatar(id,onProgress=()=>{}){
+  const config=avatarById(id);if(!config)throw Error('Unknown avatar');
+  if(this.avatarChanging||id===this.avatar.avatarId)return false;
+  const old=this.avatar,manual=this.manualImmersion,contact=this.contactImmersion,target=this.renderer.getRenderTarget();
+  this.avatarChanging=true;old.clear();
+  const next=new AvatarWalker(this.scene,this.renderer.domElement,()=>false);next.root.visible=false;
+  try{
+   onProgress(5,'アバターを読み込んでいます');
+   await next.prepare(e=>{if(e.lengthComputable)onProgress(5+65*e.loaded/e.total,'アバターを読み込んでいます');},config);
+   next.position.copy(old.position);next.position.y=INSTALLATION.floorY;next.root.quaternion.copy(old.root.quaternion);
+   for(const key of ['yaw','pitch','distance','fpsYaw','fpsPitch','firstPerson'])next[key]=old[key];
+   next.cameraPosition=old.cameraPosition?.clone()||null;next.root.updateMatrixWorld(true);next.groundFeet();next.restModelY=next.vrm.scene.position.y;
+   old.root.visible=false;next.root.visible=true;this.avatar=next;this.contactImmersion=emptyContactImmersion();
+   // Exercise both opaque and faded materials before exposing the new visitor.
+   onProgress(78,'アバターの光を準備しています');
+   for(const fade of [0,.5]){
+    next.root.visible=true;next.fadeForFirstPerson(fade);
+    this.renderer.setRenderTarget(this.composer.writeBuffer);
+    await this.renderer.compileAsync(this.scene,this.camera);
+    this.renderer.setRenderTarget(target);this.manualImmersion=fade;this.render(this.time,{auto:false});
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+   }
+   this.contactImmersion=contact;this.manualImmersion=manual;next.fadeForFirstPerson(this.immersionAmount);this.render(this.time,{auto:false});
+   next.canInput=old.canInput;old.dispose();this.preparedPrograms=this.renderer.info.programs.length;
+   onProgress(100,'アバターを切り替えました');return true;
+  }catch(error){
+   this.avatar=old;next.dispose();this.contactImmersion=contact;this.manualImmersion=manual;old.root.visible=this.view==='walk'&&this.immersionAmount<1;this.render(this.time,{auto:false});throw error;
+  }finally{this.renderer.setRenderTarget(target);this.avatarChanging=false;}
+ }
+
  setTime(t){const m={...meditationMotion(t),...roomMotion(t)};this.time=t;this.uniforms.ceremonyPhase.value=m.ceremonyPhase;if(this.autoStyle)this.updateStyleCycle(t);const weight=test=>(test(this.uniforms.paintStyle.value)?1:0)*(1-this.uniforms.styleMix.value)+(test(this.uniforms.nextPaintStyle.value)?1:0)*this.uniforms.styleMix.value;this.graphicAmount=weight(k=>k===2);this.pixelAmount=weight(k=>k>=3);this.lightAmount=weight(k=>k===2||k===5);if(this.bloom)this.bloom.strength=.42-.31*this.graphicAmount-.32*this.pixelAmount;for(const k of ['phase','breath','blink','pupilScale'])this.uniforms[k].value=m[k];this.uniforms.beat.value=m.heartbeat;this.uniforms.pupilOffset.value.set(m.pupilX,m.pupilY);this.uniforms.proximity.value=this.view==='walk'?this.proximity:0;if(this.surroundingLight){this.surroundingLight.uniforms.amount.value=this.view==='walk'?this.contactImmersion.portal:0;this.surroundingLight.uniforms.nearWarp.value=this.view==='walk'?approachDistortion(this.avatar.position):0;this.surroundingLight.enabled=this.surroundingLight.uniforms.amount.value>0||this.surroundingLight.uniforms.nearWarp.value>0;if(this.surroundingLight.uniforms.amount.value===0)this.surroundingLight.portalOrigin=null;const full=this.surroundingLight.uniforms.amount.value>=1;this.scenePass.enabled=!full;this.bloom.enabled=!full;}if(this.view==='walk'&&this.avatar?.ready){this.uniforms.gaze.value.copy(this.trackedGaze);this.sphere.rotation.y=this.eyeYaw;}else{this.uniforms.gaze.value.set(m.gazeX,m.gazeY);this.sphere.rotation.y=0;}this.installation?.update(m);return m;}
  cameraAt(t){if(this.view==='walk'){this.avatar.follow(this.camera,1/60,true,0,this.immersionAmount);return;}const room=this.view!=='sphere',c=room?meditationRoomCamera(t):meditationCamera(t);this.camera.fov=meditationFov(room?39:32,this.camera.aspect);this.camera.position.fromArray(c.position);this.camera.lookAt(...c.target);this.controls.target.fromArray(c.target);this.camera.updateProjectionMatrix();}
  resize(w,h){this.renderer.setSize(w,h,false);this.composer?.setSize(w,h);this.camera.aspect=w/h;this.camera.fov=meditationFov(this.view==='sphere'?32:39,this.camera.aspect);this.camera.updateProjectionMatrix();}
@@ -196,6 +228,7 @@ export class MeditationRenderer{
  aimImmersion(){this.avatar.fpsYaw=Math.atan2(this.avatar.position.x,this.avatar.position.z);this.avatar.fpsPitch=-Math.atan2(.31,Math.max(.1,Math.hypot(this.avatar.position.x,this.avatar.position.z)));}
  toggleImmersion(){if(this.view!=='walk'||!this.avatar.ready)return false;this.manualFirstPerson=!this.manualFirstPerson;if(this.manualFirstPerson)this.aimImmersion();this.avatar.firstPerson=this.manualFirstPerson||this.contactImmersion.engaged;return true;}
  step(dt,active){
+  if(this.avatarChanging)return false;
   const old=this.manualImmersion,target=this.manualFirstPerson?1:0,before=this.contactImmersion;
   this.manualImmersion+=Math.sign(target-old)*Math.min(Math.abs(target-old),Math.max(0,dt)*1.8);
   this.controls.enabled=this.view!=='walk';
